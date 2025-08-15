@@ -4,6 +4,8 @@ node_modules
 
 data
 
+.eslintcache
+
 # dotEnv files should not be committed
 .env*
 !.env.vault
@@ -16,3 +18,7 @@ data
 # System Files
 .DS_Store
 Thumbs.db
+
+# Sentry Config File
+.env.sentry-build-plugin
+.sentryclirc

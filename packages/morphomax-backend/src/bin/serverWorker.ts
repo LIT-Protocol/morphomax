@@ -1,3 +1,4 @@
+import '../lib/sentry';
 import { startApiServer } from '../lib/apiServer';
 import { startWorker } from '../lib/jobWorker';
 import { serviceLogger } from '../lib/logger';

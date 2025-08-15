@@ -1,0 +1,47 @@
+query GetUserPositions($where: VaultPositionFilters, $first: Int = 100, $skip: Int = 0) {
+  vaultPositions(where: $where, first: $first, skip: $skip) {
+    pageInfo {
+      count
+      countTotal
+      limit
+      skip
+    }
+    items {
+      id
+      user {
+        vaultPositions {
+          vault {
+            address
+            asset {
+              address
+              decimals
+              name
+              symbol
+            }
+            id
+            name
+            state {
+              apy
+              avgApy
+              avgNetApy
+              netApy
+            }
+            symbol
+            whitelisted
+          }
+          state {
+            assets
+            assetsUsd
+            id
+            pnl
+            pnlUsd
+            roe
+            roeUsd
+            shares
+            timestamp
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,3 +1,3 @@
-DELETE http://localhost:3000/schedules/{{scheduleId}}
+DELETE http://localhost:3000/schedule/{{scheduleId}}
 Authorization: Bearer YOUR_AUTH_TOKEN
 Content-Type: application/json

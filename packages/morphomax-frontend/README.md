@@ -1,1 +1,1 @@
-## Vincent Morphomax frontend
+## Vincent Yield frontend

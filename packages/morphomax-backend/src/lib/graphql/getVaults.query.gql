@@ -1,0 +1,50 @@
+query GetVaults(
+  $orderBy: VaultOrderBy
+  $where: VaultFilters
+  $orderDirection: OrderDirection
+  $first: Int = 100
+  $skip: Int = 0
+) {
+  vaults(
+    orderBy: $orderBy
+    where: $where
+    orderDirection: $orderDirection
+    first: $first
+    skip: $skip
+  ) {
+    pageInfo {
+      count
+      countTotal
+      limit
+      skip
+    }
+    items {
+      address
+      asset {
+        address
+        decimals
+        name
+        symbol
+      }
+      chain {
+        id
+        network
+      }
+      id
+      name
+      liquidity {
+        underlying
+        usd
+      }
+      state {
+        apy
+        avgApy
+        avgNetApy
+        netApy
+        netApyWithoutRewards
+      }
+      symbol
+      whitelisted
+    }
+  }
+}

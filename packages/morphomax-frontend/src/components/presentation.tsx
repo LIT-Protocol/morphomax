@@ -10,43 +10,58 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Info } from '@/components/info';
+import { EnforcementDisclaimer } from '@/components/enforcement-disclaimer';
+import { Footer } from '@/components/footer';
+import { OptimalStrategyInfo } from '@/components/optimal-strategy-info';
 import { useBackend } from '@/hooks/useBackend';
 
 export const Presentation: React.FC = () => {
   const { getJwt } = useBackend();
 
   return (
-    <Card data-testId="presentation" className="w-full md:max-w-md bg-white p-8 shadow-sm">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Dynamic & Secure DCA on Base</CardTitle>
-        <CardDescription className="text-gray-600">
-          Automated Dollar-Cost Averaging for Cryptocurrency
+    <Card className="w-full max-w-3xl bg-white p-8 shadow-sm rounded-lg">
+      <CardHeader className="space-y-3 text-center">
+        <CardTitle className="text-3xl font-bold text-gray-900">Vincent Yield Maximizer</CardTitle>
+        <CardDescription className="space-y-2">
+          <p className="text-gray-800 font-medium">
+            This agent helps you earn more yield on your USDC.
+          </p>
+          <p className="text-gray-600">
+            It automatically moves your funds into the highest-yielding Morpho vault.
+          </p>
         </CardDescription>
       </CardHeader>
 
-      <Separator className="my-4" />
+      <Separator />
 
-      <CardContent className="text-center">
-        <p className="text-gray-700">
-          Welcome to the Vincent DCA Service. This application allows you to set up automated
-          dollar-cost-averaging for your cryptocurrency investments on Base.
-        </p>
-        <p className="mt-4 text-gray-700">Support for more chains coming soon.</p>
-        <p className="mt-4 text-gray-700">
-          To get started, please Auth with Vincent to manage your DCA schedules.
-        </p>
-        <p className="mt-4 text-gray-700">
-          This app is provided to demonstrate the capabilities of the Vincent platform, and not
-          intended for production use.
-        </p>
+      <CardContent className="space-y-6 text-center">
+        <div className="space-y-3">
+          <p className="font-semibold text-gray-900">How it works:</p>
+          <div>
+            <p className="text-gray-700">1. Connect with Vincent</p>
+            <p className="text-gray-700">2. Deposit USDC (minimum 50 USDC)</p>
+            <p className="text-gray-700">3. Active your Agent</p>
+          </div>
+        </div>
+
+        <OptimalStrategyInfo />
+
+        <div className="space-y-4">
+          <Button
+            onClick={getJwt}
+            className="w-full bg-purple-600 text-white hover:bg-purple-700 py-2 px-4 rounded-md transition-colors"
+          >
+            Connect with Vincent
+          </Button>
+
+          <EnforcementDisclaimer />
+        </div>
       </CardContent>
 
+      <Separator />
+
       <CardFooter className="flex flex-col items-center">
-        <Button onClick={getJwt} className="bg-purple-600 text-white hover:bg-purple-700">
-          Auth with Vincent
-        </Button>
-        <Info />
+        <Footer />
       </CardFooter>
     </Card>
   );

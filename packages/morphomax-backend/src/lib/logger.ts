@@ -1,3 +1,3 @@
 import consola from 'consola';
 
-export const serviceLogger = consola.withTag('Core DCA Service');
+export const serviceLogger = consola.withTag('MorphoMax Agent Service');

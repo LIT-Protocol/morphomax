@@ -2,11 +2,11 @@ import { useCallback, useContext } from 'react';
 
 import { BACKEND_URL, REDIRECT_URI } from '@/config';
 import { JwtContext } from '@/contexts/jwt';
-import { useVincentWebAppClient } from '@/hooks/useVincentWebAppClient';
+import { useVincentWebAuthClient } from '@/hooks/useVincentWebAuthClient';
 
 type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-export type DCA = {
+export type Schedule = {
   lastRunAt: string;
   nextRunAt: string;
   lastFinishedAt: string;
@@ -16,31 +16,164 @@ export type DCA = {
   failReason: string;
   data: {
     name: string;
-    purchaseAmount: number;
-    purchaseIntervalHuman: string;
-    vincentAppVersion: number;
     walletAddress: string;
     updatedAt: string;
   };
 };
 
-export interface CreateDCARequest {
+export type Swap = {
+  _id: string;
+  createdAt: string;
+  deposits: {
+    approval: {
+      approvalTxHash?: string;
+      approvedAmount: string;
+      spenderAddress: string;
+      tokenAddress: string;
+      tokenDecimals: number;
+    };
+    deposit: {
+      amount: string;
+      operation: string;
+      timestamp: number;
+      txHash: string;
+      vaultAddress: string;
+    };
+  }[];
+  redeems: {
+    amount: string;
+    operation: string;
+    timestamp: number;
+    txHash: string;
+    vaultAddress: string;
+  }[];
+  scheduleId: string;
+  success: boolean;
+  topVault: {
+    address: string;
+    asset: {
+      address: string;
+      decimals: number;
+      name: string;
+      symbol: string;
+    };
+    chain: {
+      id: number;
+      network: string;
+    };
+    id: string;
+    name: string;
+    symbol: string;
+    whitelisted: boolean;
+  };
+  updatedAt: string;
+  userPositions: {
+    id: string;
+    user: {
+      vaultPositions: {
+        state: {
+          assets: string;
+          assetsUsd: number;
+          id: number;
+          pnl: string;
+          pnlUsd: number;
+          roe: number;
+          roeUsd: number;
+          shares: number;
+          timestamp: number;
+        };
+        vault: {
+          address: string;
+          asset: {
+            address: string;
+            decimals: number;
+            name: string;
+            symbol: string;
+          };
+          id: string;
+          name: string;
+          state: {
+            apy: number;
+            avgApy: number;
+            avgNetApy: number;
+            netApy: number;
+          };
+          symbol: string;
+          whitelisted: boolean;
+        };
+      }[];
+    };
+  }[];
+  userTokenBalance: {
+    address: string;
+    balance: string;
+    decimals: number;
+  }[];
+  walletAddress: string;
+};
+
+export type Strategy = {
+  address: string;
+  asset: {
+    address: string;
+    decimals: number;
+    name: string;
+    symbol: string;
+  };
+  chain: {
+    id: number;
+    network: string;
+  };
+  id: string;
   name: string;
-  purchaseAmount: string;
-  purchaseIntervalHuman: string;
-}
+  state: {
+    apy: number;
+    avgApy: number;
+    avgNetApy: number;
+    netApy: number;
+  };
+  symbol: string;
+  whitelisted: boolean;
+};
 
 export const useBackend = () => {
   const { authInfo } = useContext(JwtContext);
-  const vincentWebAppClient = useVincentWebAppClient();
+  const vincentWebAppClient = useVincentWebAuthClient();
 
   const getJwt = useCallback(() => {
     // Redirect to Vincent Auth consent page with appId and version
-    vincentWebAppClient.redirectToConsentPage({
-      // consentPageUrl: `http://localhost:3000/`,
+    vincentWebAppClient.redirectToConnectPage({
+      // delegationAuthPageUrl: `http://localhost:3000/`,
       redirectUri: REDIRECT_URI,
     });
   }, [vincentWebAppClient]);
+
+  const sendUnAuthenticatedRequest = useCallback(
+    async <T>(endpoint: string, method: HTTPMethod, body?: unknown): Promise<T> => {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+        method,
+        headers,
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const json = (await response.json()) as { data: T; success: boolean };
+
+      if (!json.success) {
+        throw new Error(`Backend error: ${json.data}`);
+      }
+
+      return json.data;
+    },
+    []
+  );
 
   const sendRequest = useCallback(
     async <T>(endpoint: string, method: HTTPMethod, body?: unknown): Promise<T> => {
@@ -74,52 +207,44 @@ export const useBackend = () => {
     [authInfo]
   );
 
-  const createDCA = useCallback(
-    async (dca: CreateDCARequest) => {
-      return sendRequest<DCA>('/schedule', 'POST', dca);
-    },
-    [sendRequest]
-  );
-
-  const getDCAs = useCallback(async () => {
-    return sendRequest<DCA[]>('/schedules', 'GET');
+  const createSchedule = useCallback(async () => {
+    return sendRequest<Schedule>('/schedule', 'POST');
   }, [sendRequest]);
 
-  const disableDCA = useCallback(
-    async (scheduleId: string) => {
-      return sendRequest<DCA>(`/schedules/${scheduleId}/disable`, 'PUT');
+  const getSchedules = useCallback(async () => {
+    return sendRequest<Schedule[]>('/schedule', 'GET');
+  }, [sendRequest]);
+
+  const getScheduleSwaps = useCallback(
+    async (
+      scheduleId: string,
+      { limit = 10, skip = 0 }: { limit?: number; skip?: number } = {}
+    ) => {
+      return sendRequest<Swap[]>(
+        `/schedule/${scheduleId}/swaps?limit=${limit}&skip=${skip}`,
+        'GET'
+      );
     },
     [sendRequest]
   );
 
-  const enableDCA = useCallback(
+  const deleteSchedule = useCallback(
     async (scheduleId: string) => {
-      return sendRequest<DCA>(`/schedules/${scheduleId}/enable`, 'PUT');
+      return sendRequest<Schedule>(`/schedule/${scheduleId}`, 'DELETE');
     },
     [sendRequest]
   );
 
-  const editDCA = useCallback(
-    async (scheduleId: string, dca: CreateDCARequest) => {
-      return sendRequest<DCA>(`/schedules/${scheduleId}`, 'PUT', dca);
-    },
-    [sendRequest]
-  );
-
-  const deleteDCA = useCallback(
-    async (scheduleId: string) => {
-      return sendRequest<DCA>(`/schedules/${scheduleId}`, 'DELETE');
-    },
-    [sendRequest]
-  );
+  const getOptimalStrategyInfo = useCallback(async () => {
+    return sendUnAuthenticatedRequest<Strategy>('/strategy/top', 'GET');
+  }, [sendUnAuthenticatedRequest]);
 
   return {
-    createDCA,
-    deleteDCA,
-    disableDCA,
-    editDCA,
-    enableDCA,
-    getDCAs,
+    createSchedule,
+    deleteSchedule,
+    getOptimalStrategyInfo,
+    getSchedules,
+    getScheduleSwaps,
     getJwt,
   };
 };

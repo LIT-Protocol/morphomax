@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import express from 'express';
 
 import { env } from './env';
@@ -8,6 +9,8 @@ import { connectToMongoDB } from './mongo/mongoose';
 const app = express();
 
 registerRoutes(app);
+
+Sentry.setupExpressErrorHandler(app);
 
 const { MONGODB_URI, PORT } = env;
 

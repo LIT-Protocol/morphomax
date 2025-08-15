@@ -5,7 +5,13 @@ module.exports = {
   extends: ['../../.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
   parserOptions: { project: true },
-  ignorePatterns: ['.eslintrc.cjs', 'jest.config.js'],
+  ignorePatterns: [
+    '.eslintrc.cjs',
+    'jest.config.js',
+    'src/lib/graphql/generated.ts',
+    'dist/',
+    'build.config.ts',
+  ],
   overrides: [
     {
       files: ['test.spec.ts'],

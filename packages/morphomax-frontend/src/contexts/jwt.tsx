@@ -1,11 +1,11 @@
 import React, { createContext, useCallback, useState, useEffect, ReactNode } from 'react';
 import { IRelayPKP } from '@lit-protocol/types';
-import { jwt } from '@lit-protocol/vincent-sdk';
+import * as jwt from '@lit-protocol/vincent-app-sdk/jwt';
 
-const { verify } = jwt;
+const { verifyVincentAppUserJWT } = jwt;
 
-import { APP_ID } from '@/config';
-import { useVincentWebAppClient } from '@/hooks/useVincentWebAppClient';
+import { APP_ID, EXPECTED_AUDIENCE } from '@/config';
+import { useVincentWebAuthClient } from '@/hooks/useVincentWebAuthClient';
 
 const APP_JWT_KEY = `${APP_ID}-jwt`;
 
@@ -31,7 +31,7 @@ interface JwtProviderProps {
 }
 
 export const JwtProvider: React.FC<JwtProviderProps> = ({ children }) => {
-  const vincentWebAppClient = useVincentWebAppClient();
+  const vincentWebAuthClient = useVincentWebAuthClient();
   const [authInfo, setAuthInfo] = useState<AuthInfo | null | undefined>(undefined);
 
   const logOut = useCallback(() => {
@@ -39,22 +39,22 @@ export const JwtProvider: React.FC<JwtProviderProps> = ({ children }) => {
     localStorage.removeItem(APP_JWT_KEY);
   }, []);
 
-  const logWithJwt = useCallback(() => {
+  const logWithJwt = useCallback(async () => {
     const existingJwtStr = localStorage.getItem(APP_JWT_KEY);
-    const didJustLogin = vincentWebAppClient.isLogin();
+    const didJustLogin = vincentWebAuthClient.uriContainsVincentJWT();
 
     if (didJustLogin) {
       try {
-        const jwtResult = vincentWebAppClient.decodeVincentLoginJWT(window.location.origin);
+        const jwtResult = await vincentWebAuthClient.decodeVincentJWTFromUri(EXPECTED_AUDIENCE);
 
         if (jwtResult) {
           const { decodedJWT, jwtStr } = jwtResult;
 
           localStorage.setItem(APP_JWT_KEY, jwtStr);
-          vincentWebAppClient.removeLoginJWTFromURI();
+          vincentWebAuthClient.removeVincentJWTFromURI();
           setAuthInfo({
             jwt: jwtStr,
-            pkp: decodedJWT.payload.pkp,
+            pkp: decodedJWT.payload.pkpInfo,
           });
           return;
         } else {
@@ -70,25 +70,29 @@ export const JwtProvider: React.FC<JwtProviderProps> = ({ children }) => {
 
     if (existingJwtStr) {
       try {
-        const decodedJWT = verify(existingJwtStr, window.location.origin);
+        const decodedJWT = await verifyVincentAppUserJWT({
+          expectedAudience: EXPECTED_AUDIENCE,
+          jwt: existingJwtStr,
+          requiredAppId: APP_ID,
+        });
 
         setAuthInfo({
           jwt: existingJwtStr,
-          pkp: decodedJWT.payload.pkp,
+          pkp: decodedJWT.payload.pkpInfo,
         });
       } catch (error: unknown) {
         console.error(`Error verifying existing JWT. Need to relogin: ${(error as Error).message}`);
         logOut();
       }
     }
-  }, [logOut, vincentWebAppClient]);
+  }, [logOut, vincentWebAuthClient]);
 
   useEffect(() => {
-    try {
-      logWithJwt();
-    } catch {
+    const handleConnectFailure = (e: unknown) => {
+      console.error('Error logging in:', e);
       logOut();
-    }
+    };
+    logWithJwt().catch(handleConnectFailure);
   }, [logWithJwt, logOut]);
 
   return (

@@ -1,131 +1,77 @@
 import { Response } from 'express';
 
 import { ScheduleIdentitySchema, ScheduleParamsSchema } from './schema';
-import * as jobManager from '../agenda/jobs/dcaSwapJobManager';
+import { VincentAuthenticatedRequest } from './types';
+import * as jobManager from '../jobs/morphoMaxJobManager';
+import { MorphoSwap } from '../mongo/models/MorphoSwap';
 
-import type { ExpressAuthHelpers } from '@lit-protocol/vincent-sdk';
+const { cancelJob, createJob, listJobsByWalletAddress } = jobManager;
 
-const { cancelJob, createJob, disableJob, editJob, enableJob, listJobsByWalletAddress } =
-  jobManager;
-
-export const handleListSchedulesRoute = async (
-  req: ExpressAuthHelpers['AuthenticatedRequest'],
-  res: Response
-) => {
+export const handleListSchedulesRoute = async (req: VincentAuthenticatedRequest, res: Response) => {
   try {
     const {
-      pkp: { ethAddress },
+      pkpInfo: { ethAddress },
     } = req.user.decodedJWT.payload;
     const schedules = await listJobsByWalletAddress({ walletAddress: ethAddress });
 
-    res.json({ data: schedules.map((sched) => sched.toJson()), success: true });
+    res.json({ data: schedules.map((s) => s.toJson()), success: true });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
 };
 
 export const handleCreateScheduleRoute = async (
-  req: ExpressAuthHelpers['AuthenticatedRequest'],
+  req: VincentAuthenticatedRequest,
   res: Response
 ) => {
   try {
-    const {
-      app: { version: appVersion },
-      pkp: { ethAddress },
-    } = req.user.decodedJWT.payload;
+    const { pkpInfo } = req.user.decodedJWT.payload;
 
     const scheduleParams = ScheduleParamsSchema.parse({
-      ...req.body,
-      walletAddress: ethAddress,
+      pkpInfo,
     });
 
-    const schedule = await createJob(
-      { ...scheduleParams, vincentAppVersion: appVersion },
-      { interval: scheduleParams.purchaseIntervalHuman }
-    );
+    const schedule = await createJob({ ...scheduleParams }, { interval: 'weekly' });
     res.status(201).json({ data: schedule.toJson(), success: true });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
 };
 
-export const handleEditScheduleRoute = async (
-  req: ExpressAuthHelpers['AuthenticatedRequest'],
+export const handleListScheduleSwapsRoute = async (
+  req: VincentAuthenticatedRequest,
   res: Response
 ) => {
-  try {
-    const {
-      app: { version: appVersion },
-      pkp: { ethAddress },
-    } = req.user.decodedJWT.payload;
-    const { scheduleId } = ScheduleIdentitySchema.parse(req.params);
+  const {
+    pkpInfo: { ethAddress },
+  } = req.user.decodedJWT.payload;
+  const { limit = 10, skip = 0 } = req.query;
 
-    const scheduleParams = ScheduleParamsSchema.parse({
-      ...req.body,
-      walletAddress: ethAddress,
-    });
+  const swaps = await MorphoSwap.find({ pkpInfo: { ethAddress } })
+    .sort({
+      createdAt: -1,
+    })
+    .limit(limit)
+    .skip(skip)
+    .lean();
 
-    const job = await editJob({
-      scheduleId,
-      data: { ...scheduleParams, vincentAppVersion: appVersion },
-    });
-    res.status(201).json({ data: job.toJson(), success: true });
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
+  if (swaps.length === 0) {
+    res.status(404).json({ error: `No morpho swaps found for wallet address ${ethAddress}` });
+    return;
   }
-};
 
-export const handleDisableScheduleRoute = async (
-  req: ExpressAuthHelpers['AuthenticatedRequest'],
-  res: Response
-) => {
-  try {
-    const {
-      pkp: { ethAddress },
-    } = req.user.decodedJWT.payload;
-    const { scheduleId } = ScheduleIdentitySchema.parse(req.params);
-
-    const job = await disableJob({ scheduleId, walletAddress: ethAddress });
-    if (!job) {
-      res.status(404).json({ error: 'Job not found' });
-      return;
-    }
-
-    res.json({ data: job.toJson(), success: true });
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
-  }
-};
-
-export const handleEnableScheduleRoute = async (
-  req: ExpressAuthHelpers['AuthenticatedRequest'],
-  res: Response
-) => {
-  try {
-    const {
-      pkp: { ethAddress },
-    } = req.user.decodedJWT.payload;
-    const { scheduleId } = ScheduleIdentitySchema.parse(req.params);
-
-    const job = await enableJob({ scheduleId, walletAddress: ethAddress });
-
-    res.json({ data: job.toJson(), success: true });
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
-  }
+  res.json({ data: swaps, success: true });
 };
 
 export const handleDeleteScheduleRoute = async (
-  req: ExpressAuthHelpers['AuthenticatedRequest'],
+  req: VincentAuthenticatedRequest,
   res: Response
 ) => {
   try {
-    const {
-      pkp: { ethAddress },
-    } = req.user.decodedJWT.payload;
+    const { pkpInfo } = req.user.decodedJWT.payload;
     const { scheduleId } = ScheduleIdentitySchema.parse(req.params);
 
-    await cancelJob({ scheduleId, walletAddress: ethAddress });
+    await cancelJob({ pkpInfo, scheduleId });
 
     res.json({ success: true });
   } catch (err) {

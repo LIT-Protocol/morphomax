@@ -3,6 +3,7 @@ import esbuild from 'esbuild';
 const buildConfigs = [
   {
     bundle: true,
+    sourcemap: true,
     entryPoints: ['src/bin/server.ts'],
     format: 'cjs',
     outfile: 'dist/server.cjs',

@@ -1,11 +1,9 @@
-PUT http://localhost:3000/schedules/{{scheduleId}}/enable
+PUT http://localhost:3000/schedule/{{scheduleId}}/enable
 Authorization: Bearer YOUR_AUTH_TOKEN
 Content-Type: application/json
 
 {
-  "name": "Weekly ETH DCA!!!",
-  "purchaseAmount": 210.55,
-  "purchaseIntervalHuman": "20 seconds",
+  "name": "A Schedule!!!",
   "walletAddress": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-  "description": "Buy some every 20 seconds"
+  "description": "Enabling"
 }

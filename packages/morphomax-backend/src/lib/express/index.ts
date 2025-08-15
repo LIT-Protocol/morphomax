@@ -1,29 +1,30 @@
 import cors from 'cors';
 import express, { Express } from 'express';
 
-import { expressAuthHelpers } from '@lit-protocol/vincent-sdk';
+import { createVincentUserMiddleware } from '@lit-protocol/vincent-app-sdk/expressMiddleware';
 
-import { handleListPurchasesRoute } from './purchases';
 import {
-  handleListSchedulesRoute,
-  handleEnableScheduleRoute,
-  handleDisableScheduleRoute,
   handleCreateScheduleRoute,
   handleDeleteScheduleRoute,
-  handleEditScheduleRoute,
+  handleListSchedulesRoute,
+  handleListScheduleSwapsRoute,
 } from './schedules';
+import { handleGetTopStrategyRoute } from './strategies';
+import { handleListSwapsRoute } from './swaps';
 import { env } from '../env';
 import { serviceLogger } from '../logger';
 
-const { ALLOWED_AUDIENCE, CORS_ALLOWED_DOMAIN, IS_DEVELOPMENT } = env;
+const { ALLOWED_AUDIENCE, CORS_ALLOWED_DOMAINS, IS_DEVELOPMENT, VINCENT_APP_ID } = env;
 
-const { authenticatedRequestHandler, getAuthenticateUserExpressHandler } = expressAuthHelpers;
-
-const authenticateUserMiddleware = getAuthenticateUserExpressHandler(ALLOWED_AUDIENCE);
+const { handler, middleware } = createVincentUserMiddleware({
+  allowedAudience: ALLOWED_AUDIENCE,
+  requiredAppId: VINCENT_APP_ID,
+  userKey: 'user',
+});
 
 const corsConfig = {
   optionsSuccessStatus: 204,
-  origin: IS_DEVELOPMENT ? true : [CORS_ALLOWED_DOMAIN],
+  origin: IS_DEVELOPMENT ? true : CORS_ALLOWED_DOMAINS,
 };
 
 export const registerRoutes = (app: Express) => {
@@ -32,45 +33,16 @@ export const registerRoutes = (app: Express) => {
   if (IS_DEVELOPMENT) {
     serviceLogger.info(`CORS is disabled for development`);
   } else {
-    serviceLogger.info(`Configuring CORS with allowed domain: ${CORS_ALLOWED_DOMAIN}`);
+    serviceLogger.info(`Configuring CORS with allowed domains: ${CORS_ALLOWED_DOMAINS}`);
   }
   app.use(cors(corsConfig));
 
-  app.get(
-    '/purchases',
-    authenticateUserMiddleware,
-    authenticatedRequestHandler(handleListPurchasesRoute)
-  );
-  app.get(
-    '/schedules',
-    authenticateUserMiddleware,
-    authenticatedRequestHandler(handleListSchedulesRoute)
-  );
-  app.post(
-    '/schedule',
-    authenticateUserMiddleware,
-    authenticatedRequestHandler(handleCreateScheduleRoute)
-  );
-  app.put(
-    '/schedules/:scheduleId',
-    authenticateUserMiddleware,
-    authenticatedRequestHandler(handleEditScheduleRoute)
-  );
-  app.put(
-    '/schedules/:scheduleId/enable',
-    authenticateUserMiddleware,
-    authenticatedRequestHandler(handleEnableScheduleRoute)
-  );
-  app.put(
-    '/schedules/:scheduleId/disable',
-    authenticateUserMiddleware,
-    authenticatedRequestHandler(handleDisableScheduleRoute)
-  );
-  app.delete(
-    '/schedules/:scheduleId',
-    authenticateUserMiddleware,
-    authenticatedRequestHandler(handleDeleteScheduleRoute)
-  );
+  app.get('/strategy/top', handleGetTopStrategyRoute);
+  app.get('/swap', middleware, handler(handleListSwapsRoute));
+  app.get('/schedule', middleware, handler(handleListSchedulesRoute));
+  app.post('/schedule', middleware, handler(handleCreateScheduleRoute));
+  app.get('/schedule/:scheduleId/swaps', middleware, handler(handleListScheduleSwapsRoute));
+  app.delete('/schedule/:scheduleId', middleware, handler(handleDeleteScheduleRoute));
 
   serviceLogger.info(`Routes registered`);
 };
