@@ -1,14 +1,20 @@
-export function Footer() {
+import React from 'react';
+import { theme } from '@/components/theme';
+
+export const Footer: React.FC = () => {
   return (
-    <div className="px-3 sm:px-6 py-2 flex flex-col items-center gap-4">
-      <div className={`flex items-center gap-2 text-sm font-normal`}>
-        <span>Powered by</span>
+    <div className={`px-3 sm:px-6 py-3 border-t ${theme.cardBorder} ${theme.cardBg} flex flex-col items-center gap-2 rounded-b-2xl`}>
+      <div className={`flex flex-col items-center gap-1 text-xs font-medium ${theme.text}`}>
+        <div className="flex flex-col items-center gap-1 text-sm font-normal"></div>
+        <span>Securing Autonomy</span>
+      </div>
+      <div className={`flex items-center gap-2 text-xs font-medium ${theme.text}`}>
         <a
           href="https://litprotocol.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 font-normal no-underline !text-orange-500 hover:!text-orange-600 transition-colors"
-          style={{ textDecoration: 'none', fontWeight: 'normal', fontStyle: 'normal' }}
+          className="flex items-center gap-1 font-medium no-underline !text-orange-500 hover:!text-orange-600 transition-colors"
+          style={{ textDecoration: 'none', fontStyle: 'normal' }}
         >
           <svg
             className="w-5 h-auto"
@@ -33,37 +39,37 @@ export function Footer() {
           </svg>
         </a>
       </div>
-      <div className={`flex items-center gap-1 text-sm font-normal`}>
+      <div className={`flex items-center gap-1 text-xs font-medium ${theme.text}`}>
         <a
           href="https://t.me/+aa73FAF9Vp82ZjJh"
           target="_blank"
           rel="noopener noreferrer"
-          className="font-normal no-underline hover:opacity-80 transition-colors text-gray-500 dark:text-white/40"
-          style={{ textDecoration: 'none', fontWeight: 'normal', fontStyle: 'normal' }}
+          className={`font-medium no-underline hover:opacity-80 transition-colors ${theme.text} !text-current`}
+          style={{ textDecoration: 'none', fontStyle: 'normal' }}
         >
           Help
         </a>
-        <span className={`font-normal`}> / </span>
+        <span className={`font-medium ${theme.text}`}> / </span>
         <a
           href="https://www.litprotocol.com/legal/privacy-policy"
           target="_blank"
           rel="noopener noreferrer"
-          className="font-normal no-underline hover:opacity-80 transition-colors text-gray-500 dark:text-white/40"
-          style={{ textDecoration: 'none', fontWeight: 'normal', fontStyle: 'normal' }}
+          className={`font-medium no-underline hover:opacity-80 transition-colors ${theme.text} !text-current`}
+          style={{ textDecoration: 'none', fontStyle: 'normal' }}
         >
           Privacy
         </a>
-        <span className={`font-normal`}> / </span>
+        <span className={`font-medium ${theme.text}`}> / </span>
         <a
           href="https://www.litprotocol.com/legal/terms-of-service"
           target="_blank"
           rel="noopener noreferrer"
-          className="font-normal no-underline hover:opacity-80 transition-colors text-gray-500 dark:text-white/40"
-          style={{ textDecoration: 'none', fontWeight: 'normal', fontStyle: 'normal' }}
+          className={`font-medium no-underline hover:opacity-80 transition-colors ${theme.text} !text-current`}
+          style={{ textDecoration: 'none', fontStyle: 'normal' }}
         >
           Terms
         </a>
       </div>
     </div>
   );
-}
+};

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-
 import { Box } from '@/components/ui/box';
 import { Strategy, useBackend } from '@/hooks/useBackend';
+import { ApyDropdown } from '@/components/ApyDropdown';
 
 export const OptimalStrategyInfo: React.FC = () => {
   const [topStrategy, setTopStrategy] = useState<Strategy>();
@@ -24,18 +24,11 @@ export const OptimalStrategyInfo: React.FC = () => {
   }
 
   return (
-    <Box className="gap-1 p-0 text-sm bg-transparent">
-      <div className="bg-blue-50 p-3 mt-4 rounded-md border border-blue-100">
-        <p className="font-semibold text-gray-900">Current optimal strategy:</p>
-        <div className="flex flex-row p-2">
-          <p className="w-1/2 text-left">Chain: {topStrategy.chain.network}</p>
-          <p className="w-1/2 text-left">Protocol: Morpho</p>
-        </div>
-        <div className="flex flex-row p-2">
-          <p className="w-1/2 text-left">Name: {topStrategy.name}</p>
-          <p className="w-1/2 text-left">Yield: {(topStrategy.state.netApy * 100).toFixed(2)}%</p>
-        </div>
-      </div>
-    </Box>
+    <div className="text-center">
+      <ApyDropdown 
+        netApy={topStrategy.state.netApy} 
+        strategyName={topStrategy.name}
+      />
+    </div>
   );
 };

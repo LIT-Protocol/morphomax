@@ -1,68 +1,68 @@
 import React from 'react';
 
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { EnforcementDisclaimer } from '@/components/enforcement-disclaimer';
-import { Footer } from '@/components/footer';
 import { OptimalStrategyInfo } from '@/components/optimal-strategy-info';
 import { useBackend } from '@/hooks/useBackend';
+import { theme } from '@/components/theme';
+import { Footer } from '@/components/shared/Footer';
+import { Header } from '@/components/shared/Header';
+import { useTheme } from '@/components/shared/useTheme';
 
 export const Presentation: React.FC = () => {
   const { getJwt } = useBackend();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
-    <Card className="w-full max-w-3xl bg-white p-8 shadow-sm rounded-lg">
-      <CardHeader className="space-y-3 text-center">
-        <CardTitle className="text-3xl font-bold text-gray-900">Vincent Yield Maximizer</CardTitle>
-        <CardDescription className="space-y-2">
-          <p className="text-gray-800 font-medium">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex items-center justify-center p-4">
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
+      
+      <div className={`w-[calc(100%-1rem)] max-w-xl mx-auto ${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl`}>
+        <Header title="Vincent Yield" isDark={isDark} onToggleTheme={toggleTheme} />
+        <div className={`px-3 sm:px-6 pt-5 pb-3 border-b ${theme.cardBorder}`}>
+          <h1 className={`font-medium ${theme.text} text-center leading-tight`} style={{fontSize: '30px'}}>
+            Vincent Yield Maximizer
+          </h1>
+          <div className="text-xs uppercase tracking-widest font-normal text-orange-500 text-center mt-1">
+            EARLY ACCESS
+          </div>
+          <p className={`${theme.textMuted} text-sm text-center mt-2`}>
             This agent helps you earn more yield on your USDC.
           </p>
-          <p className="text-gray-600">
+          <p className={`${theme.textMuted} text-sm text-center`}>
             It automatically moves your funds into the highest-yielding Morpho vault.
           </p>
-        </CardDescription>
-      </CardHeader>
-
-      <Separator />
-
-      <CardContent className="space-y-6 text-center">
-        <div className="space-y-3">
-          <p className="font-semibold text-gray-900">How it works:</p>
-          <div>
-            <p className="text-gray-700">1. Connect with Vincent</p>
-            <p className="text-gray-700">2. Deposit USDC (minimum 50 USDC)</p>
-            <p className="text-gray-700">3. Active your Agent</p>
+          <p className={`${theme.textMuted} text-sm text-center`}>
+            Please connect to continue.
+          </p>
+          
+          {/* Current optimal strategy */}
+          <div className="mt-4">
+            <OptimalStrategyInfo />
           </div>
         </div>
 
-        <OptimalStrategyInfo />
-
-        <div className="space-y-4">
-          <Button
+        <div className="flex flex-col items-center py-4 sm:py-5 space-y-3">
+          <button
             onClick={getJwt}
-            className="w-full bg-purple-600 text-white hover:bg-purple-700 py-2 px-4 rounded-md transition-colors"
+            className="font-semibold tracking-wide transition-all duration-200 border text-white hover:opacity-90"
+            style={{
+              borderRadius: '0.5rem',
+              fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)',
+              padding: 'clamp(0.375rem, 0.75vw, 0.5rem) clamp(1rem, 4vw, 2rem)',
+              backgroundColor: '#f97316',
+              borderColor: '#f97316',
+            }}
           >
             Connect with Vincent
-          </Button>
-
-          <EnforcementDisclaimer />
+          </button>
         </div>
-      </CardContent>
 
-      <Separator />
-
-      <CardFooter className="flex flex-col items-center">
         <Footer />
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 };
