@@ -12,7 +12,7 @@ export const Presentation: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <style>{`
         @keyframes shimmer {
           0% { background-position: -200% 0; }
@@ -20,7 +20,7 @@ export const Presentation: React.FC = () => {
         }
       `}</style>
       
-      <div className={`w-[calc(100%-1rem)] max-w-xl mx-auto ${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl`}>
+      <div className={`w-[calc(100%-1rem)] max-w-xl mx-auto ${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl relative z-10`}>
         <Header title="Vincent Yield" isDark={isDark} onToggleTheme={toggleTheme} />
         <div className={`px-3 sm:px-6 pt-5 pb-3 border-b ${theme.cardBorder}`}>
           <h1 className={`font-medium ${theme.text} text-center leading-tight`} style={{fontSize: '30px'}}>

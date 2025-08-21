@@ -119,7 +119,7 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <style>{`
         @keyframes shimmer {
           0% { background-position: -200% 0; }
@@ -133,7 +133,7 @@ export const Dashboard: React.FC = () => {
         }
       `}</style>
       
-      <div className={`w-[calc(100%-1rem)] max-w-xl mx-auto ${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl`}>
+      <div className={`w-[calc(100%-1rem)] max-w-xl mx-auto ${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl relative z-10`}>
         <Header 
           title="Vincent Yield" 
           isDark={isDark} 

@@ -4,8 +4,12 @@ import { createRoot } from 'react-dom/client';
 
 import './index.css';
 import App from './App';
+import { initializeTheme } from '@/components/shared/useTheme';
 
 import { env } from '@/config/env';
+
+// Initialize theme before React renders
+initializeTheme();
 
 const { VITE_IS_DEVELOPMENT, VITE_SENTRY_DSN } = env;
 
