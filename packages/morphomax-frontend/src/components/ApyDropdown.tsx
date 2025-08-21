@@ -89,7 +89,7 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <svg
-                      className="w-4 h-auto text-orange-500 -mt-0.5"
+                      className="w-4 h-auto text-orange-500"
                       width="40"
                       viewBox="0 0 311 228"
                       fill="none"
