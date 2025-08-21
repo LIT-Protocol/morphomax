@@ -358,11 +358,6 @@ export const Dashboard: React.FC = () => {
                                 <>
                                   <div className="fixed inset-0 z-40" onClick={() => setShowStopConfirmation(null)} />
                                   <div className="absolute bottom-full right-0 mb-2 w-48 z-50">
-                                    {/* Arrow pointing down */}
-                                    <div className="flex justify-end pr-2">
-                                      <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white dark:border-t-gray-800"></div>
-                                    </div>
-                                    
                                     {/* Dropdown content */}
                                     <div className={`${theme.mainCard} border ${theme.mainCardBorder} rounded-xl shadow-lg overflow-hidden`} onClick={e => e.stopPropagation()}>
                                       <div className="p-2 space-y-2">
@@ -392,6 +387,11 @@ export const Dashboard: React.FC = () => {
                                           )}
                                         </button>
                                       </div>
+                                    </div>
+                                    
+                                    {/* Arrow pointing up */}
+                                    <div className="flex justify-end pr-1">
+                                      <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-white dark:border-b-gray-800"></div>
                                     </div>
                                   </div>
                                 </>
