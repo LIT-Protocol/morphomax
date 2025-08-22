@@ -117,7 +117,7 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
                 </div>
                 {/* Disclaimer directly below */}
                 <div className={`text-[10px] ${theme.textMuted} leading-tight mt-0.5 mb-3 text-center`}>
-                  Bonus APY is calculated on an estimated $250M and will be granted for the first $20M in deposits, up to $20K per depositor and paid out at a future snapshot.
+                  Bonus APY is calculated on an estimated $250M $LITKEY FDV and will be granted for the first $20M in deposits, up to $20K per depositor and paid out at a future snapshot.
                 </div>
               </div>
 
