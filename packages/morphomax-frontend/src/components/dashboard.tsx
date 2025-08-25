@@ -180,22 +180,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <p className={`${theme.textMuted} text-sm text-center mt-2`}>
             This app uses the Vincent platform to securely and verifiably auto-rotate your
-            stablecoins into top yield opportunities on Morpho.{' '}
-            <button
-              type="button"
-              onClick={() => setShowWalletModal(true)}
-              className="underline text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 focus:outline-none"
-              style={{
-                padding: 0,
-                background: 'none',
-                border: 'none',
-                font: 'inherit',
-                cursor: 'pointer',
-              }}
-            >
-              Deposit
-            </button>{' '}
-            USDC on Base. Learn more about{' '}
+            stablecoins into top yield opportunities on Morpho. Learn more about{' '}
             <a
               href="https://docs.heyvincent.ai/"
               target="_blank"
@@ -214,6 +199,18 @@ export const Dashboard: React.FC = () => {
               code
             </a>
           </p>
+
+          <div className="mt-3 flex justify-center">
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => setShowWalletModal(true)}
+              className="bg-orange-600 hover:bg-orange-700 dark:bg-orange-400 dark:hover:bg-orange-300 text-white font-semibold px-4 py-2 rounded shadow transition-colors"
+            >
+              Deposit USDC on Base
+            </Button>
+          </div>
 
           {/* Yield Information */}
           <div className="mt-3 flex justify-center">
