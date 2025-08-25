@@ -180,9 +180,22 @@ export const Dashboard: React.FC = () => {
           </div>
           <p className={`${theme.textMuted} text-sm text-center mt-2`}>
             This app uses the Vincent platform to securely and verifiably auto-rotate your
-            stablecoins into top yield opportunities on Morpho. Deposit at least 50 USDC{' '}
-            <span className="text-orange-500">on Base Mainnet</span> to get started with Vincent
-            Yield. Learn more about{' '}
+            stablecoins into top yield opportunities on Morpho.{' '}
+            <button
+              type="button"
+              onClick={() => setShowWalletModal(true)}
+              className="underline text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 focus:outline-none"
+              style={{
+                padding: 0,
+                background: 'none',
+                border: 'none',
+                font: 'inherit',
+                cursor: 'pointer',
+              }}
+            >
+              Deposit
+            </button>{' '}
+            USDC on Base. Learn more about{' '}
             <a
               href="https://docs.heyvincent.ai/"
               target="_blank"
