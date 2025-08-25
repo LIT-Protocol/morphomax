@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006 --no-open --ci",
     "build-storybook": "storybook build",
