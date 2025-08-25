@@ -13,7 +13,7 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
 
   // The backend provides native APY, we add 30% bonus for Lit Protocol Points
   const nativeApy = netApy; // Backend already provides native APY
-  const litProtocolBonus = 0.30; // Fixed 30% bonus
+  const litProtocolBonus = 0.3; // Fixed 30% bonus
   const totalApy = nativeApy + litProtocolBonus; // Native + 30% bonus
 
   // Close dropdown when clicking outside
@@ -44,9 +44,7 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
           <span className="text-sm font-semibold text-green-700 dark:text-green-300">
             {(totalApy * 100).toFixed(2)}%
           </span>
-          <span className="text-xs text-green-600 dark:text-green-400 font-normal">
-            APY
-          </span>
+          <span className="text-xs text-green-600 dark:text-green-400 font-normal">APY</span>
           {isOpen ? (
             <ChevronUp className="h-3 w-3 text-green-600 dark:text-green-400" />
           ) : (
@@ -62,20 +60,24 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
           <div className="flex justify-center">
             <div className="w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-white dark:border-b-gray-800"></div>
           </div>
-          
+
           {/* Dropdown content */}
-          <div className={`${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl overflow-hidden`}>
+          <div
+            className={`${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl overflow-hidden`}
+          >
             <div className="p-4 space-y-4">
               {/* Current Strategy */}
               {strategyName && (
                 <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
-                  <span className={`text-xs font-medium ${theme.textMuted} uppercase tracking-wide`}>Current Strategy</span>
-                  <span className={`text-xs font-medium ${theme.text}`}>
-                    {strategyName}
+                  <span
+                    className={`text-xs font-medium ${theme.textMuted} uppercase tracking-wide`}
+                  >
+                    Current Strategy
                   </span>
+                  <span className={`text-xs font-medium ${theme.text}`}>{strategyName}</span>
                 </div>
               )}
-              
+
               {/* Native APY */}
               <div className="flex items-center justify-between">
                 <span className={`text-sm font-medium ${theme.text}`}>Native APY</span>
@@ -116,8 +118,20 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
                   </span>
                 </div>
                 {/* Disclaimer directly below */}
-                <div className={`text-[10px] ${theme.textMuted} leading-tight mt-0.5 mb-3 text-center`}>
-                  Bonus APY is calculated on an estimated $250M $LITKEY FDV and will be granted for the first $20M in deposits, up to $20K per depositor and paid out at a future snapshot.
+                <div
+                  className={`text-[10px] ${theme.textMuted} leading-tight mt-0.5 mb-3 text-center`}
+                >
+                  Bonus APY is based on an estimated $250M $LITKEY FDV. It applies to the first $20M
+                  deposited into Vincent apps, with rewards capped at $20K per unique depositor and
+                  distributed at a future snapshot.{' '}
+                  <a
+                    href="https://docs.heyvincent.ai/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-orange-600 dark:text-orange-400"
+                  >
+                    Learn more
+                  </a>
                 </div>
               </div>
 

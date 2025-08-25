@@ -38,7 +38,7 @@ export const Presentation: React.FC = () => {
             This agent intelligently auto-rotates your stablecoins into top yield opportunities on
             Morpho to maximize your returns
           </p>
-          <p className={`${theme.textMuted} text-sm text-center`}>
+          <p className={`${theme.textMuted} text-sm text-center mt-2`}>
             <a
               href="https://github.com/LIT-Protocol/morphomax"
               target="_blank"
