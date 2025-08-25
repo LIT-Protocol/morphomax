@@ -19,23 +19,36 @@ export const Presentation: React.FC = () => {
           100% { background-position: 200% 0; }
         }
       `}</style>
-      
-      <div className={`w-[calc(100%-1rem)] max-w-xl mx-auto ${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl relative z-10`}>
+
+      <div
+        className={`w-[calc(100%-1rem)] max-w-xl mx-auto ${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl relative z-10`}
+      >
         <Header title="Vincent Yield" isDark={isDark} onToggleTheme={toggleTheme} />
         <div className={`px-3 sm:px-6 pt-5 pb-3 border-b ${theme.cardBorder}`}>
-          <h1 className={`font-medium ${theme.text} text-center leading-tight`} style={{fontSize: '30px'}}>
+          <h1
+            className={`font-medium ${theme.text} text-center leading-tight`}
+            style={{ fontSize: '30px' }}
+          >
             Vincent Yield Maximizer
           </h1>
           <div className="text-xs uppercase tracking-widest font-normal text-orange-500 text-center mt-1">
             EARLY ACCESS
           </div>
           <p className={`${theme.textMuted} text-sm text-center mt-2`}>
-            This agent intelligently auto-rotates your stablecoins into top yield opportunities to maximize your returns
+            This agent intelligently auto-rotates your stablecoins into top yield opportunities on
+            Morpho to maximize your returns
           </p>
           <p className={`${theme.textMuted} text-sm text-center`}>
-            Please connect to continue.
+            <a
+              href="https://github.com/LIT-Protocol/morphomax"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-orange-500 transition-colors"
+            >
+              Check it out on Github
+            </a>
           </p>
-          
+
           {/* Current optimal strategy */}
           <div className="mt-4">
             <OptimalStrategyInfo />
