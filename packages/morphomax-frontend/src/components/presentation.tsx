@@ -30,10 +30,7 @@ export const Presentation: React.FC = () => {
             EARLY ACCESS
           </div>
           <p className={`${theme.textMuted} text-sm text-center mt-2`}>
-            This agent helps you earn more yield on your USDC.
-          </p>
-          <p className={`${theme.textMuted} text-sm text-center`}>
-            It automatically moves your funds into the highest-yielding Morpho vault.
+            This agent intelligently auto-rotates your stablecoins into top yield opportunities to maximize your returns
           </p>
           <p className={`${theme.textMuted} text-sm text-center`}>
             Please connect to continue.
