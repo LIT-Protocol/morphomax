@@ -68,7 +68,7 @@ export async function optimizeMorphoYield(job: JobType): Promise<void> {
     });
 
     consola.debug('Fetching current top strategy, user vault positions and user delegations...');
-    const [userPositions, topVault, userPermittedAppVersion] = await Promise.all([
+    const [userPositions, topVault, userPermittedAppVersion] = await Promise.all<any>([
       getUserPositions({ pkpInfo, chainId: baseProvider.network.chainId }),
       getTopMorphoVault(),
       getUserPermittedVersion({ appId: VINCENT_APP_ID, ethAddress: pkpInfo.ethAddress }),

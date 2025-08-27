@@ -19,7 +19,7 @@ async function main() {
   }
 
   // Setup
-  const [agenda, mongo] = await Promise.all([createAgenda(), connectToMongoDB(MONGODB_URI)]);
+  const [agenda, mongo] = await Promise.all<any>([createAgenda(), connectToMongoDB(MONGODB_URI)]);
 
   // Job run
   const job = await findJob({ walletAddress, mustExist: true });

@@ -31,7 +31,6 @@ const ApprovalBaseSchema = new Schema(
 const ApprovalSuccessSchema = new Schema(
   {
     spenderAddress: { required: true, type: String },
-    tokenDecimals: { required: true, type: Number },
     transaction: { type: String }, // tx won't be sent if current allowance is enough
     userop: { type: String },
   },

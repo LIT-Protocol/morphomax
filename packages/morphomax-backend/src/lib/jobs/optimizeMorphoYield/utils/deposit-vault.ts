@@ -6,14 +6,17 @@ import {
   bundledVincentAbility as MorphoAbility0012mma,
   MorphoOperation as MorphoOperation0012mma,
 } from '@lit-protocol/vincent-ability-morpho-0.0.12-mma';
+import {
+  bundledVincentAbility as MorphoAbility0119mma,
+  MorphoOperation as MorphoOperation0119mma,
+} from '@lit-protocol/vincent-ability-morpho-0.1.19-mma';
 import { getVincentAbilityClient } from '@lit-protocol/vincent-app-sdk/abilityClient';
 
 import { alchemyGasSponsor, alchemyGasSponsorApiKey, alchemyGasSponsorPolicyId } from './alchemy';
 import { type TokenBalance } from './get-erc20-info';
 import { type MorphoVaultInfo } from './get-morpho-vaults';
+import { handleOperationExecution } from './handle-operation-execution';
 import { delegateeSigner } from './signer';
-import { waitForTransaction } from './wait-for-transaction';
-import { waitForUserOperation } from './wait-for-user-operation';
 import { type AppData } from '../../jobVersion';
 
 type ApproveBase = {
@@ -24,9 +27,8 @@ type ApproveBase = {
 type ApproveSuccess = ApproveBase & {
   spenderAddress: string;
   status: 'success';
-  tokenDecimals: number;
-  transaction?: string;
-  userop?: string;
+  transaction: string | undefined;
+  userop: string | undefined;
 };
 
 type ApproveError = ApproveBase & {
@@ -44,7 +46,7 @@ type DepositBase = {
 type DepositSuccess = DepositBase & {
   status: 'success';
   transaction: string;
-  userop?: string;
+  userop: string | undefined;
 };
 
 type DepositError = DepositBase & {
@@ -59,15 +61,17 @@ export type DepositResult = {
   deposit: InnerDepositResult;
 };
 
-interface ApproveParams {
-  alchemyGasSponsor: string;
-  alchemyGasSponsorApiKey: string;
-  alchemyGasSponsorPolicyId: string;
-  amount: string;
-  chain: string;
+interface EIP7702Params {
+  alchemyGasSponsor: boolean;
+  alchemyGasSponsorApiKey: string | undefined;
+  alchemyGasSponsorPolicyId: string | undefined;
+}
+
+interface ApproveParams extends EIP7702Params {
+  rpcUrl: string;
   spenderAddress: string;
   tokenAddress: string;
-  tokenAmount: number;
+  tokenAmount: ethers.BigNumber;
   tokenDecimals: number;
 }
 
@@ -77,12 +81,9 @@ interface ApproveFunctionParams {
   provider: ethers.providers.StaticJsonRpcProvider;
 }
 
-interface DepositParams {
-  alchemyGasSponsor: string;
-  alchemyGasSponsorApiKey: string;
-  alchemyGasSponsorPolicyId: string;
-  amount: string;
-  chain: string;
+interface DepositParams extends EIP7702Params {
+  amount: ethers.BigNumber;
+  decimals: number;
   vaultAddress: string;
 }
 
@@ -92,7 +93,13 @@ interface DepositFunctionParams {
   provider: ethers.providers.StaticJsonRpcProvider;
 }
 
-async function approveMorphoVaultv6({
+function bnToNumberCeil(bn: ethers.BigNumber, decimals: number) {
+  const s = ethers.utils.formatUnits(bn, decimals); // exact decimal string
+  const scale = 10 ** decimals;
+  return Math.ceil(Number(s) * scale) / scale; // ≥ exact, overshoots ≤ 1 unit
+}
+
+async function approveMorphoVault6({
   approveParams,
   pkpInfo,
   provider,
@@ -106,7 +113,15 @@ async function approveMorphoVaultv6({
     ethersSigner: delegateeSigner,
   });
 
-  const erc20ApprovalPrecheckResponse = await abilityClient.precheck(approveParams, {
+  // This is what erc20 approval ability on this version requires. Fixes have been proposed to not use formatted amounts for UI
+  const approvalAmount = bnToNumberCeil(approveParams.tokenAmount, approveParams.tokenDecimals);
+  const fullApproveParams = {
+    ...approveParams,
+    chainId: provider.network.chainId,
+    tokenAmount: approvalAmount,
+  };
+
+  const erc20ApprovalPrecheckResponse = await abilityClient.precheck(fullApproveParams, {
     delegatorPkpEthAddress: pkpInfo.ethAddress,
   });
   if ('error' in erc20ApprovalPrecheckResponse) {
@@ -115,7 +130,7 @@ async function approveMorphoVaultv6({
     );
   }
 
-  const erc20ApprovalExecutionResponse = await abilityClient.execute(approveParams, {
+  const erc20ApprovalExecutionResponse = await abilityClient.execute(fullApproveParams, {
     delegatorPkpEthAddress: pkpInfo.ethAddress,
   });
   const erc20ApprovalExecutionResult = erc20ApprovalExecutionResponse.result;
@@ -125,19 +140,21 @@ async function approveMorphoVaultv6({
     );
   }
 
-  let txHash; let useropHash;
+  let txHash;
+  let useropHash;
   if (
     approveParams.alchemyGasSponsor &&
     'approvalTxHash' in erc20ApprovalExecutionResult &&
     typeof erc20ApprovalExecutionResult.approvalTxHash === 'string'
   ) {
-    useropHash = erc20ApprovalExecutionResult.approvalTxHash;
-    txHash = await waitForUserOperation({
+    const operationHashes = await handleOperationExecution({
+      pkpInfo,
       provider,
-      pkpPublicKey: pkpInfo.publicKey,
-      useropHash: erc20ApprovalExecutionResult.approvalTxHash,
+      isSponsored: fullApproveParams.alchemyGasSponsor,
+      operationHash: erc20ApprovalExecutionResult.approvalTxHash,
     });
-    await waitForTransaction({ provider, transactionHash: txHash });
+    txHash = operationHashes.txHash;
+    useropHash = operationHashes.useropHash;
   } else {
     txHash = erc20ApprovalExecutionResult.approvalTxHash;
   }
@@ -147,7 +164,76 @@ async function approveMorphoVaultv6({
     spenderAddress: erc20ApprovalExecutionResult.spenderAddress,
     status: 'success',
     tokenAddress: erc20ApprovalExecutionResult.tokenAddress,
-    tokenDecimals: erc20ApprovalExecutionResult.tokenDecimals,
+    transaction: txHash,
+    userop: useropHash,
+  };
+}
+
+async function approveMorphoVault27({
+  approveParams,
+  pkpInfo,
+  provider,
+}: {
+  approveParams: ApproveParams;
+  pkpInfo: IRelayPKP;
+  provider: ethers.providers.StaticJsonRpcProvider;
+}): Promise<ApproveResult> {
+  const abilityClient = getVincentAbilityClient({
+    bundledVincentAbility: MorphoAbility0119mma,
+    ethersSigner: delegateeSigner,
+  });
+
+  const fullApproveParams = {
+    alchemyGasSponsor: approveParams.alchemyGasSponsor,
+    alchemyGasSponsorApiKey: approveParams.alchemyGasSponsorApiKey,
+    alchemyGasSponsorPolicyId: approveParams.alchemyGasSponsorPolicyId,
+    amount: approveParams.tokenAmount.toString(),
+    chain: provider.network.name,
+    operation: MorphoOperation0119mma.APPROVE,
+    vaultAddress: approveParams.spenderAddress,
+  };
+
+  const morphoDepositPrecheckResponse = await abilityClient.precheck(
+    {
+      ...fullApproveParams,
+      rpcUrl: provider.connection.url,
+    },
+    {
+      delegatorPkpEthAddress: pkpInfo.ethAddress,
+    }
+  );
+  const morphoDepositPrecheckResult = morphoDepositPrecheckResponse.result;
+  if (!('amountValid' in morphoDepositPrecheckResult)) {
+    throw new Error(
+      `Morpho approve precheck failed. Response: ${JSON.stringify(morphoDepositPrecheckResponse, null, 2)}`
+    );
+  }
+
+  const morphoDepositExecutionResponse = await abilityClient.execute(
+    { ...fullApproveParams, rpcUrl: '' },
+    {
+      delegatorPkpEthAddress: pkpInfo.ethAddress,
+    }
+  );
+  const morphoDepositExecutionResult = morphoDepositExecutionResponse.result;
+  if (!('txHash' in morphoDepositExecutionResult)) {
+    throw new Error(
+      `Morpho deposit ability run failed. Response: ${JSON.stringify(morphoDepositExecutionResponse, null, 2)}`
+    );
+  }
+
+  const { txHash, useropHash } = await handleOperationExecution({
+    pkpInfo,
+    provider,
+    isSponsored: fullApproveParams.alchemyGasSponsor,
+    operationHash: morphoDepositExecutionResult.txHash,
+  });
+
+  return {
+    amount: morphoDepositExecutionResult.amount,
+    spenderAddress: fullApproveParams.vaultAddress,
+    status: 'success',
+    tokenAddress: approveParams.tokenAddress,
     transaction: txHash,
     userop: useropHash,
   };
@@ -157,7 +243,8 @@ const approveFunctionMap: Record<
   number,
   (params: ApproveFunctionParams) => Promise<ApproveSuccess>
 > = {
-  6: approveMorphoVaultv6,
+  6: approveMorphoVault6,
+  27: approveMorphoVault27,
 } as const;
 
 async function depositMorphoVault6({
@@ -170,8 +257,12 @@ async function depositMorphoVault6({
     ethersSigner: delegateeSigner,
   });
 
+  const { amount, decimals, ...rest } = depositParams;
+  const amountToDeposit = ethers.utils.formatUnits(amount, decimals);
   const fullDepositParams = {
-    ...depositParams,
+    ...rest,
+    amount: amountToDeposit,
+    chain: provider.network.name,
     operation: MorphoOperation0012mma.DEPOSIT,
   };
 
@@ -187,7 +278,7 @@ async function depositMorphoVault6({
   const morphoDepositPrecheckResult = morphoDepositPrecheckResponse.result;
   if (!('amountValid' in morphoDepositPrecheckResult)) {
     throw new Error(
-      `Morpho redeem precheck failed. Response: ${JSON.stringify(morphoDepositPrecheckResponse, null, 2)}`
+      `Morpho deposit precheck failed. Response: ${JSON.stringify(morphoDepositPrecheckResponse, null, 2)}`
     );
   }
 
@@ -204,18 +295,75 @@ async function depositMorphoVault6({
     );
   }
 
-  let txHash; let useropHash;
-  if (!depositParams.alchemyGasSponsor) {
-    txHash = morphoDepositExecutionResult.txHash;
-  } else {
-    useropHash = morphoDepositExecutionResult.txHash;
-    txHash = await waitForUserOperation({
-      provider,
-      pkpPublicKey: pkpInfo.publicKey,
-      useropHash: morphoDepositExecutionResult.txHash,
-    });
-    await waitForTransaction({ provider, transactionHash: txHash });
+  const { txHash, useropHash } = await handleOperationExecution({
+    pkpInfo,
+    provider,
+    isSponsored: fullDepositParams.alchemyGasSponsor,
+    operationHash: morphoDepositExecutionResult.txHash,
+  });
+
+  return {
+    amount: morphoDepositExecutionResult.amount,
+    status: 'success',
+    transaction: txHash,
+    userop: useropHash,
+    vaultAddress: morphoDepositExecutionResult.vaultAddress,
+  };
+}
+
+async function depositMorphoVault27({
+  depositParams,
+  pkpInfo,
+  provider,
+}: DepositFunctionParams): Promise<DepositSuccess> {
+  const abilityClient = getVincentAbilityClient({
+    bundledVincentAbility: MorphoAbility0119mma,
+    ethersSigner: delegateeSigner,
+  });
+
+  const { amount, decimals, ...rest } = depositParams;
+  const fullDepositParams = {
+    ...rest,
+    amount: amount.toString(),
+    chain: provider.network.name,
+    operation: MorphoOperation0119mma.DEPOSIT,
+  };
+
+  const morphoDepositPrecheckResponse = await abilityClient.precheck(
+    {
+      ...fullDepositParams,
+      rpcUrl: provider.connection.url,
+    },
+    {
+      delegatorPkpEthAddress: pkpInfo.ethAddress,
+    }
+  );
+  const morphoDepositPrecheckResult = morphoDepositPrecheckResponse.result;
+  if (!('amountValid' in morphoDepositPrecheckResult)) {
+    throw new Error(
+      `Morpho deposit precheck failed. Response: ${JSON.stringify(morphoDepositPrecheckResponse, null, 2)}`
+    );
   }
+
+  const morphoDepositExecutionResponse = await abilityClient.execute(
+    { ...fullDepositParams, rpcUrl: '' },
+    {
+      delegatorPkpEthAddress: pkpInfo.ethAddress,
+    }
+  );
+  const morphoDepositExecutionResult = morphoDepositExecutionResponse.result;
+  if (!('txHash' in morphoDepositExecutionResult)) {
+    throw new Error(
+      `Morpho deposit ability run failed. Response: ${JSON.stringify(morphoDepositExecutionResponse, null, 2)}`
+    );
+  }
+
+  const { txHash, useropHash } = await handleOperationExecution({
+    pkpInfo,
+    provider,
+    isSponsored: fullDepositParams.alchemyGasSponsor,
+    operationHash: morphoDepositExecutionResult.txHash,
+  });
 
   return {
     amount: morphoDepositExecutionResult.amount,
@@ -231,13 +379,8 @@ const depositFunctionMap: Record<
   (params: DepositFunctionParams) => Promise<DepositSuccess>
 > = {
   6: depositMorphoVault6,
+  27: depositMorphoVault27,
 } as const;
-
-function bnToNumberCeil(bn: ethers.BigNumber, decimals: number) {
-  const s = ethers.utils.formatUnits(bn, decimals); // exact decimal string
-  const scale = 10 ** decimals;
-  return Math.ceil(Number(s) * scale) / scale; // ≥ exact, overshoots ≤ 1 unit
-}
 
 export async function depositVault({
   app,
@@ -252,18 +395,14 @@ export async function depositVault({
   tokenBalance: TokenBalance;
   vault: MorphoVaultInfo;
 }): Promise<DepositResult> {
-  // This is what erc20 approval ability currently requires. It should be updated to use strings without decimal places
-  const approvalAmount = bnToNumberCeil(tokenBalance.balance, tokenBalance.decimals);
-
-  const approveParams = {
+  const approveParams: ApproveParams = {
     alchemyGasSponsor,
     alchemyGasSponsorApiKey,
     alchemyGasSponsorPolicyId,
-    chainId: provider.network.chainId,
     rpcUrl: provider.connection.url,
     spenderAddress: vault.address,
     tokenAddress: tokenBalance.address,
-    tokenAmount: approvalAmount,
+    tokenAmount: tokenBalance.balance,
     tokenDecimals: tokenBalance.decimals,
   };
 
@@ -273,19 +412,14 @@ export async function depositVault({
   }
   const approveResult = await approveFunction({ approveParams, pkpInfo, provider });
 
-  const amountToDeposit = ethers.utils.formatUnits(
-    tokenBalance.balance.toString(),
-    tokenBalance.decimals
-  );
-
-  const depositParams = {
+  const depositParams: DepositParams = {
     alchemyGasSponsor,
     alchemyGasSponsorApiKey,
     alchemyGasSponsorPolicyId,
-    amount: amountToDeposit,
+    amount: tokenBalance.balance,
+    decimals: tokenBalance.decimals,
     // bundlerStepsLimit: 1,
     // skipRevertOnPermit: true,
-    chain: provider.network.name,
     vaultAddress: vault.address as string,
   };
 

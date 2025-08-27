@@ -5,13 +5,16 @@ import {
   bundledVincentAbility as bundledVincentAbility0012mma,
   MorphoOperation as MorphoOperation0012mma,
 } from '@lit-protocol/vincent-ability-morpho-0.0.12-mma';
+import {
+  bundledVincentAbility as bundledVincentAbility0119mma,
+  MorphoOperation as MorphoOperation0119mma,
+} from '@lit-protocol/vincent-ability-morpho-0.1.19-mma';
 import { getVincentAbilityClient } from '@lit-protocol/vincent-app-sdk/abilityClient';
 
 import { alchemyGasSponsor, alchemyGasSponsorApiKey, alchemyGasSponsorPolicyId } from './alchemy';
 import { type UserVaultPositionItem } from '../morphoLoader';
+import { handleOperationExecution } from './handle-operation-execution';
 import { delegateeSigner } from './signer';
-import { waitForTransaction } from './wait-for-transaction';
-import { waitForUserOperation } from './wait-for-user-operation';
 import { AppData } from '../../jobVersion';
 
 type RedeemBase = {
@@ -22,7 +25,7 @@ type RedeemBase = {
 type RedeemSuccess = RedeemBase & {
   status: 'success';
   transaction: string;
-  userop?: string;
+  userop: string | undefined;
 };
 
 type RedeemError = RedeemBase & {
@@ -34,9 +37,9 @@ export type ReedemResult = RedeemSuccess | RedeemError;
 
 interface RedeemParams {
   alchemyGasSponsor: boolean;
-  alchemyGasSponsorApiKey: string;
-  alchemyGasSponsorPolicyId: string;
-  amount: string;
+  alchemyGasSponsorApiKey: string | undefined;
+  alchemyGasSponsorPolicyId: string | undefined;
+  amount: ethers.BigNumber;
   chain: string;
   vaultAddress: string;
 }
@@ -57,8 +60,11 @@ async function redeemVault6({
     ethersSigner: delegateeSigner,
   });
 
+  // Vaults are ERC-4626 compliant, They will always have 18 decimals
+  const formattedAmount = ethers.utils.formatUnits(redeemParams.amount, 18);
   const fullRedeemParams = {
     ...redeemParams,
+    amount: formattedAmount,
     operation: MorphoOperation0012mma.REDEEM,
   };
 
@@ -76,7 +82,7 @@ async function redeemVault6({
   }
 
   const morphoReedemExecutionResponse = await abilityClient.execute(
-    { ...redeemParams, rpcUrl: '' },
+    { ...fullRedeemParams, rpcUrl: '' },
     {
       delegatorPkpEthAddress: pkpInfo.ethAddress,
     }
@@ -94,18 +100,76 @@ async function redeemVault6({
     );
   }
 
-  let txHash; let useropHash;
-  if (!redeemParams.alchemyGasSponsor) {
-    txHash = morphoRedeemExecutionResult.txHash;
-  } else {
-    useropHash = morphoRedeemExecutionResult.txHash;
-    txHash = await waitForUserOperation({
-      provider,
-      useropHash,
-      pkpPublicKey: pkpInfo.publicKey,
-    });
-    await waitForTransaction({ provider, transactionHash: txHash });
+  const { txHash, useropHash } = await handleOperationExecution({
+    pkpInfo,
+    provider,
+    isSponsored: fullRedeemParams.alchemyGasSponsor,
+    operationHash: morphoRedeemExecutionResult.txHash,
+  });
+
+  return {
+    amount: morphoRedeemExecutionResult.amount,
+    status: 'success',
+    transaction: txHash,
+    userop: useropHash,
+    vaultAddress: morphoRedeemExecutionResult.vaultAddress,
+  };
+}
+
+async function redeemVault27({
+  pkpInfo,
+  provider,
+  redeemParams,
+}: RedeemFunctionParams): Promise<RedeemSuccess> {
+  const abilityClient = getVincentAbilityClient({
+    bundledVincentAbility: bundledVincentAbility0119mma,
+    ethersSigner: delegateeSigner,
+  });
+
+  const fullRedeemParams = {
+    ...redeemParams,
+    amount: redeemParams.amount.toString(),
+    operation: MorphoOperation0119mma.REDEEM,
+  };
+
+  const morphoReedemPrecheckResponse = await abilityClient.precheck(
+    { ...fullRedeemParams, rpcUrl: provider.connection.url },
+    {
+      delegatorPkpEthAddress: pkpInfo.ethAddress,
+    }
+  );
+  const morphoRedeemPrecheckResult = morphoReedemPrecheckResponse.result;
+  if (!('amountValid' in morphoRedeemPrecheckResult)) {
+    throw new Error(
+      `Morpho redeem precheck failed. Response: ${JSON.stringify(morphoReedemPrecheckResponse, null, 2)}`
+    );
   }
+
+  const morphoReedemExecutionResponse = await abilityClient.execute(
+    { ...fullRedeemParams, rpcUrl: '' },
+    {
+      delegatorPkpEthAddress: pkpInfo.ethAddress,
+    }
+  );
+  const morphoRedeemExecutionResult = morphoReedemExecutionResponse.result;
+  if (
+    !(
+      morphoRedeemExecutionResult &&
+      'txHash' in morphoRedeemExecutionResult &&
+      typeof morphoRedeemExecutionResult.txHash === 'string'
+    )
+  ) {
+    throw new Error(
+      `Morpho redeem execution failed. Response: ${JSON.stringify(morphoReedemExecutionResponse, null, 2)}`
+    );
+  }
+
+  const { txHash, useropHash } = await handleOperationExecution({
+    pkpInfo,
+    provider,
+    isSponsored: fullRedeemParams.alchemyGasSponsor,
+    operationHash: morphoRedeemExecutionResult.txHash,
+  });
 
   return {
     amount: morphoRedeemExecutionResult.amount,
@@ -118,6 +182,7 @@ async function redeemVault6({
 
 const redeemFunctionMap: Record<number, (params: RedeemFunctionParams) => Promise<ReedemResult>> = {
   6: redeemVault6,
+  27: redeemVault27,
 } as const;
 
 export async function redeemVaults({
@@ -136,17 +201,14 @@ export async function redeemVaults({
   // We have to trigger one redeem per vault and do it in sequence to avoid messing up the nonce
   for (const vaultPosition of userVaultPositions) {
     if (vaultPosition.state?.shares) {
-      // Vaults are ERC-4626 compliant, They will always have 18 decimals
-      const shares = ethers.utils.formatUnits(vaultPosition.state.shares, 18);
-
+      const amount = ethers.BigNumber.from(vaultPosition.state.shares);
       try {
-        const redeemParams = {
+        const redeemParams: RedeemParams = {
           alchemyGasSponsor,
           alchemyGasSponsorApiKey,
           alchemyGasSponsorPolicyId,
-          amount: shares,
+          amount,
           chain: provider.network.name,
-          operation: MorphoOperation0012mma.REDEEM,
           vaultAddress: vaultPosition.vault.address,
         };
 
@@ -159,7 +221,7 @@ export async function redeemVaults({
         redeemResults.push(redeemResult);
       } catch (error) {
         redeemResults.push({
-          amount: shares,
+          amount: amount.toString(),
           error: (error as Error).message || 'Unknown error when redeeming vault shares',
           status: 'error',
           vaultAddress: vaultPosition.vault.address,

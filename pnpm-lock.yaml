@@ -114,6 +114,9 @@ importers:
       '@lit-protocol/vincent-ability-morpho-0.0.12-mma':
         specifier: npm:@lit-protocol/vincent-ability-morpho@0.0.12-mma
         version: '@lit-protocol/vincent-ability-morpho@0.0.12-mma(@lit-protocol/vincent-app-sdk@0.0.12-mma(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@lit-protocol/vincent-tool-sdk@1.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.0.12)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.8.2)(utf-8-validate@5.0.10)'
+      '@lit-protocol/vincent-ability-morpho-0.1.19-mma':
+        specifier: npm:@lit-protocol/vincent-ability-morpho@0.1.19-mma
+        version: '@lit-protocol/vincent-ability-morpho@0.1.19-mma(@lit-protocol/vincent-app-sdk@0.0.12-mma(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@lit-protocol/vincent-tool-sdk@1.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.0.12)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.8.2)(utf-8-validate@5.0.10)'
       '@lit-protocol/vincent-app-sdk':
         specifier: 0.0.12-mma
         version: 0.0.12-mma(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -1956,8 +1959,16 @@ packages:
     peerDependencies:
       '@lit-protocol/vincent-app-sdk': ^0.0.12-mma
 
+  '@lit-protocol/vincent-ability-morpho@0.1.19-mma':
+    resolution: {integrity: sha512-bXdPsocpO1La83aQZO2wWM4ettm5kegGyZquokfZfQ43FO7tPEq3gse889Q46AmiPKqlUWZhmZ56j1SMimLTnA==}
+    peerDependencies:
+      '@lit-protocol/vincent-app-sdk': ^2.0.0
+
   '@lit-protocol/vincent-ability-sdk@0.0.12-mma':
     resolution: {integrity: sha512-CwKDxYMdWhIaQcq8C8/A1G4p473DI5jUQsxU2F1HWaAMd6YBaI1ixlVk7g/QJuiD+ErLqnN72I/NuUfmd90RJA==}
+
+  '@lit-protocol/vincent-ability-sdk@2.0.0':
+    resolution: {integrity: sha512-r11aWzvNxSU1N1Dj4K4rUQ7fFXQ5CKozoYZ2mYJ5dz534kXYJrBD4iaF+eGKmh3PD/ggH4qS8Ro3uQRuaXcUBw==}
 
   '@lit-protocol/vincent-app-sdk@0.0.12-mma':
     resolution: {integrity: sha512-rfxT7iWt6NfJGIi6lqzkBiYKEePEkc4rX9/d6HYDABCr+xUu91Mf9xJt2XBPo6/pwZEOyT8gX0HXZKHJNmiG7w==}
@@ -12340,9 +12351,42 @@ snapshots:
       - use-sync-external-store
       - utf-8-validate
 
+  '@lit-protocol/vincent-ability-morpho@0.1.19-mma(@lit-protocol/vincent-app-sdk@0.0.12-mma(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@lit-protocol/vincent-tool-sdk@1.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.0.12)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.8.2)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lit-protocol/vincent-ability-sdk': 2.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lit-protocol/vincent-app-sdk': 0.0.12-mma(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lit-protocol/vincent-scaffold-sdk': 1.1.8(@lit-protocol/vincent-app-sdk@0.0.12-mma(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@lit-protocol/vincent-tool-sdk@1.0.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@19.0.12)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.25.76)
+      ethers: 5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      tslib: 2.8.1
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - '@lit-protocol/vincent-tool-sdk'
+      - '@tanstack/query-core'
+      - '@types/react'
+      - bufferutil
+      - debug
+      - encoding
+      - immer
+      - react
+      - supports-color
+      - typescript
+      - use-sync-external-store
+      - utf-8-validate
+
   '@lit-protocol/vincent-ability-sdk@0.0.12-mma(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@lit-protocol/vincent-contracts-sdk': 0.0.12-mma(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ethers: 5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      semver: 7.7.2
+      tslib: 2.8.1
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@lit-protocol/vincent-ability-sdk@2.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lit-protocol/vincent-contracts-sdk': 1.0.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       ethers: 5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       semver: 7.7.2
       tslib: 2.8.1

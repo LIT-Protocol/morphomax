@@ -47,6 +47,7 @@
     "@lit-protocol/types": "7.2.0",
     "@lit-protocol/vincent-ability-erc20-approval-0.0.12-mma": "npm:@lit-protocol/vincent-ability-erc20-approval@0.0.12-mma",
     "@lit-protocol/vincent-ability-morpho-0.0.12-mma": "npm:@lit-protocol/vincent-ability-morpho@0.0.12-mma",
+    "@lit-protocol/vincent-ability-morpho-0.1.19-mma": "npm:@lit-protocol/vincent-ability-morpho@0.1.19-mma",
     "@lit-protocol/vincent-app-sdk": "0.0.12-mma",
     "@lit-protocol/vincent-contracts-sdk": "^1.0.1",
     "@lit-protocol/vincent-scaffold-sdk": "1.1.9-mma",
