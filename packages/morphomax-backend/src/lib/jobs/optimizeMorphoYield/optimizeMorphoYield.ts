@@ -4,31 +4,38 @@ import { ethers } from 'ethers';
 
 import { IRelayPKP } from '@lit-protocol/types';
 
-import { type UserVaultPositionItem, type UserPositionItem, type VaultItem } from './morphoLoader';
+import { type AppData, assertJobVersion } from '../jobVersion';
+import { type UserVaultPositionItem, type UserPositionItem } from './morphoLoader';
 import {
+  DepositResult,
+  ReedemResult,
   baseProvider,
-  depositMorphoVault,
+  depositVault,
   getAddressesByChainId,
   getERC20Balance,
-  getMorphoPositions,
   getTopMorphoVault,
-  redeemMorphoVaults,
+  getUserPermittedVersion,
+  getUserPositions,
+  redeemVaults,
 } from './utils';
+import { type MorphoVaultInfo } from './utils/get-morpho-vaults';
 import { env } from '../../env';
 import { MorphoSwap } from '../../mongo/models/MorphoSwap';
 
 export type JobType = Job<JobParams>;
 export type JobParams = {
+  app: AppData;
+  jobVersion: string;
   name: string;
   pkpInfo: IRelayPKP;
   updatedAt: Date;
 };
 
-const { MINIMUM_USDC_BALANCE, MINIMUM_YIELD_IMPROVEMENT_PERCENT } = env;
+const { MINIMUM_USDC_BALANCE, MINIMUM_YIELD_IMPROVEMENT_PERCENT, VINCENT_APP_ID } = env;
 
 function getVaultsToOptimize(
   userPositions: UserPositionItem,
-  topVault: VaultItem
+  topVault: MorphoVaultInfo
 ): UserVaultPositionItem[] {
   // TODO improve this calculation
   // Consider the following stuff:
@@ -53,28 +60,58 @@ export async function optimizeMorphoYield(job: JobType): Promise<void> {
       _id,
       data: { pkpInfo },
     } = job.attrs;
+    let { app } = job.attrs.data;
 
     consola.log('Starting Morpho optimization job...', {
       _id,
       pkpInfo,
     });
 
-    consola.debug('Fetching current top USDC vault and user vault positions...');
-    const [topVault, userPositions] = await Promise.all([
+    consola.debug('Fetching current top strategy, user vault positions and user delegations...');
+    const [userPositions, topVault, userPermittedAppVersion] = await Promise.all([
+      getUserPositions({ pkpInfo, chainId: baseProvider.network.chainId }),
       getTopMorphoVault(),
-      getMorphoPositions({ pkpInfo, chainId: baseProvider.network.chainId }),
+      getUserPermittedVersion({ appId: VINCENT_APP_ID, ethAddress: pkpInfo.ethAddress }),
     ]);
 
-    consola.debug('Got top USDC vault:', topVault);
     consola.debug('Got user positions:', userPositions);
+    consola.debug('Got top USDC vault:', topVault);
+    consola.debug('Got user permitted app version:', userPermittedAppVersion);
 
-    let redeems: Awaited<ReturnType<typeof redeemMorphoVaults>> = [];
+    if (!userPermittedAppVersion) {
+      throw new Error(
+        `User ${pkpInfo.ethAddress} revoked permission to run this app. Used version to generate: ${app.version}`
+      );
+    }
+
+    // Fix old jobs that didn't have app data
+    if (!app) {
+      app = {
+        id: VINCENT_APP_ID,
+        version: userPermittedAppVersion,
+      };
+      // eslint-disable-next-line no-param-reassign
+      job.attrs.data.app = app;
+      await job.save();
+    }
+
+    // Run the saved version or update to the currently permitted one if version is compatible
+    const jobVersionToRun = assertJobVersion(app.version, userPermittedAppVersion);
+    if (jobVersionToRun !== app.version) {
+      // User updated the permitted app version after creating the job, so we need to update it
+      // eslint-disable-next-line no-param-reassign
+      job.attrs.data.app = { ...job.attrs.data.app, version: jobVersionToRun };
+      await job.save();
+    }
+
+    let redeems: ReedemResult[] = [];
     if (userPositions) {
       const vaultsToOptimize = getVaultsToOptimize(userPositions, topVault);
       consola.debug('Vaults to optimize:', vaultsToOptimize);
 
       // Withdraw from vaults to optimize
-      redeems = await redeemMorphoVaults({
+      redeems = await redeemVaults({
+        app,
         pkpInfo,
         provider: baseProvider,
         userVaultPositions: vaultsToOptimize,
@@ -91,10 +128,11 @@ export async function optimizeMorphoYield(job: JobType): Promise<void> {
     const { balance, decimals } = tokenBalance;
     consola.debug('User USDC balance:', ethers.utils.formatUnits(balance, decimals));
 
-    const deposits = [];
+    const deposits: DepositResult[] = [];
     if (balance.gt(MINIMUM_USDC_BALANCE * 10 ** decimals)) {
       // Put all USDC into the top vault
-      const depositResult = await depositMorphoVault({
+      const depositResult = await depositVault({
+        app,
         pkpInfo,
         tokenBalance,
         provider: baseProvider,

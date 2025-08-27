@@ -43,6 +43,7 @@ export interface MorphoVaultInfo {
     avgApy: number;
     avgNetApy: number;
     netApy: number;
+    netApyWithoutRewards: number;
   };
   symbol: string;
   whitelisted: boolean;
@@ -73,7 +74,8 @@ export function assertIsMorphoVaultInfo(value: unknown): asserts value is Morpho
     typeof vault.state.apy !== 'number' ||
     typeof vault.state.avgApy !== 'number' ||
     typeof vault.state.avgNetApy !== 'number' ||
-    typeof vault.state.netApy !== 'number'
+    typeof vault.state.netApy !== 'number' ||
+    typeof vault.state.netApyWithoutRewards !== 'number'
   ) {
     throw new Error('Invalid MorphoVaultInfo structure');
   }
@@ -105,6 +107,7 @@ export async function getMorphoVaults(
           avgApy: vault.state?.avgApy || 0,
           avgNetApy: vault.state?.avgNetApy || 0,
           netApy: vault.state?.netApy || 0,
+          netApyWithoutRewards: vault.state?.netApyWithoutRewards || 0,
         },
         symbol: vault.symbol,
         whitelisted: vault.whitelisted,
@@ -132,11 +135,11 @@ const loader = new DataLoader(batchLoadFn, {
   cacheMap: wrapNodeCacheForDataloader<{ vaults: MorphoVaultInfo[] }>(cache),
 });
 
-export async function getTopMorphoVault() {
+export async function getTopMorphoVault(): Promise<MorphoVaultInfo> {
   const topVaults = (await loader.load('topVaults')).vaults;
 
   const topVault = topVaults[0];
-  assertIsMorphoVaultInfo(topVaults[0]);
+  assertIsMorphoVaultInfo(topVault);
 
   return topVault;
 }

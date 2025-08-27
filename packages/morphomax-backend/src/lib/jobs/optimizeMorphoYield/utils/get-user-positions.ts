@@ -2,7 +2,7 @@ import { IRelayPKP } from '@lit-protocol/types';
 
 import { getUsersPositions, type UserPositionItem } from '../morphoLoader';
 
-export async function getMorphoPositions({
+export async function getUserPositions({
   chainId,
   pkpInfo,
 }: {

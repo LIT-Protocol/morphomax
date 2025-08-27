@@ -4161,7 +4161,6 @@ export type GetVaultsQuery = {
       whitelisted: boolean;
       asset: { __typename?: 'Asset'; address: any; decimals: number; name: string; symbol: string };
       chain: { __typename?: 'Chain'; id: number; network: string };
-      liquidity: { __typename?: 'VaultLiquidity'; underlying: any; usd: number } | null;
       state: {
         __typename?: 'VaultState';
         apy: number;
@@ -4484,17 +4483,6 @@ export const GetVaultsDocument = {
                       },
                       { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       { kind: 'Field', name: { kind: 'Name', value: 'name' } },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'liquidity' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            { kind: 'Field', name: { kind: 'Name', value: 'underlying' } },
-                            { kind: 'Field', name: { kind: 'Name', value: 'usd' } },
-                          ],
-                        },
-                      },
                       {
                         kind: 'Field',
                         name: { kind: 'Name', value: 'state' },

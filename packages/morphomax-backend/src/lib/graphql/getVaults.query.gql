@@ -32,10 +32,6 @@ query GetVaults(
       }
       id
       name
-      liquidity {
-        underlying
-        usd
-      }
       state {
         apy
         avgApy

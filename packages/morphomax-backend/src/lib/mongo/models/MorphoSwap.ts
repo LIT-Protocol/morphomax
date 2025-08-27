@@ -19,40 +19,93 @@ const decimalBigInt = (extra: Partial<Record<string, any>> = {}) => ({
   ...extra,
 });
 
-const depositSchema = new Schema(
-  {
-    approval: {
-      approvalTxHash: { required: false, type: String }, // tx won't be sent if current allowance is enough
-      approvedAmount: { required: true, type: String },
-      spenderAddress: { required: true, type: String },
-      tokenAddress: { required: true, type: String },
-      tokenDecimals: { required: true, type: Number },
-    },
-    deposit: {
-      amount: { required: true, type: String },
-      operation: { required: true, type: String },
-      timestamp: { required: true, type: Number },
-      txHash: { required: true, type: String },
-      vaultAddress: { required: true, type: String },
-    },
-  },
-  {
-    _id: false,
-  }
-);
-
-const redeemSchema = new Schema(
+const ApprovalBaseSchema = new Schema(
   {
     amount: { required: true, type: String },
-    operation: { required: true, type: String },
-    timestamp: { required: true, type: Number },
-    txHash: { required: true, type: String },
+    status: { enum: ['success', 'error'], required: true, type: String },
+    tokenAddress: { required: true, type: String },
+  },
+  { _id: false, discriminatorKey: 'status', strict: true }
+);
+
+const ApprovalSuccessSchema = new Schema(
+  {
+    spenderAddress: { required: true, type: String },
+    tokenDecimals: { required: true, type: Number },
+    transaction: { type: String }, // tx won't be sent if current allowance is enough
+    userop: { type: String },
+  },
+  { _id: false, strict: true }
+);
+
+const ApprovalErrorSchema = new Schema(
+  {
+    error: { required: true, type: String },
+  },
+  { _id: false, strict: true }
+);
+
+const DepositBaseSchema = new Schema(
+  {
+    amount: { required: true, type: String },
+    status: { enum: ['success', 'error'], required: true, type: String },
     vaultAddress: { required: true, type: String },
   },
-  {
-    _id: false,
-  }
+  { _id: false, discriminatorKey: 'status', strict: true }
 );
+
+const DepositSuccessSchema = new Schema(
+  {
+    transaction: { required: true, type: String },
+    userop: { type: String },
+  },
+  { _id: false, strict: true }
+);
+
+const DepositErrorSchema = new Schema(
+  {
+    error: { required: true, type: String },
+  },
+  { _id: false, strict: true }
+);
+
+const RedeemBaseSchema = new Schema(
+  {
+    amount: { required: true, type: String },
+    status: { enum: ['success', 'error'], required: true, type: String },
+    vaultAddress: { required: true, type: String },
+  },
+  { _id: false, discriminatorKey: 'status', strict: true }
+);
+
+const RedeemSuccessSchema = new Schema(
+  {
+    transaction: { required: true, type: String },
+    userop: { type: String },
+  },
+  { _id: false, strict: true }
+);
+
+const RedeemErrorSchema = new Schema(
+  {
+    error: { required: true, type: String },
+  },
+  { _id: false, strict: true }
+);
+
+const depositSchema = new Schema(
+  {
+    approval: { required: true, type: ApprovalBaseSchema },
+    deposit: { required: true, type: DepositBaseSchema },
+  },
+  { _id: false }
+);
+depositSchema.path('approval').discriminator('success', ApprovalSuccessSchema);
+depositSchema.path('approval').discriminator('error', ApprovalErrorSchema);
+depositSchema.path('deposit').discriminator('success', DepositSuccessSchema);
+depositSchema.path('deposit').discriminator('error', DepositErrorSchema);
+
+const redeemsArrayItem = RedeemBaseSchema;
 
 const vaultPositionsSchema = new Schema(
   {
@@ -175,7 +228,7 @@ const morphoSwapSchemaDefinition = {
       tokenId: { required: true, type: String },
     },
   },
-  redeems: { default: [], required: false, type: [redeemSchema] },
+  redeems: { default: [], required: false, type: [redeemsArrayItem] },
   scheduleId: {
     index: true,
     required: true,
@@ -188,6 +241,9 @@ const morphoSwapSchemaDefinition = {
 } as const;
 
 const MorphoSwapSchema = new Schema(morphoSwapSchemaDefinition, { timestamps: true });
+
+MorphoSwapSchema.path('redeems').discriminator('success', RedeemSuccessSchema);
+MorphoSwapSchema.path('redeems').discriminator('error', RedeemErrorSchema);
 
 // Create compound indices for common query patterns
 MorphoSwapSchema.index({ createdAt: 1, scheduleId: 1 });

@@ -6,7 +6,7 @@ export async function waitForTransaction({
   provider,
   transactionHash,
 }: {
-  confirmations: number;
+  confirmations?: number;
   provider: ethers.providers.JsonRpcProvider;
   transactionHash: string;
 }) {

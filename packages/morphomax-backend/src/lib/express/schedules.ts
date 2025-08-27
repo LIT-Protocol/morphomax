@@ -1,5 +1,7 @@
 import { Response } from 'express';
 
+import { type VincentJWTAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
+
 import { ScheduleIdentitySchema, ScheduleParamsSchema } from './schema';
 import { VincentAuthenticatedRequest } from './types';
 import * as jobManager from '../jobs/morphoMaxJobManager';
@@ -25,9 +27,10 @@ export const handleCreateScheduleRoute = async (
   res: Response
 ) => {
   try {
-    const { pkpInfo } = req.user.decodedJWT.payload;
+    const { app, pkpInfo } = (req.user.decodedJWT as VincentJWTAppUser).payload;
 
     const scheduleParams = ScheduleParamsSchema.parse({
+      app,
       pkpInfo,
     });
 
@@ -68,10 +71,15 @@ export const handleDeleteScheduleRoute = async (
   res: Response
 ) => {
   try {
-    const { pkpInfo } = req.user.decodedJWT.payload;
+    const { app, pkpInfo } = (req.user.decodedJWT as VincentJWTAppUser).payload;
+
+    const scheduleParams = ScheduleParamsSchema.parse({
+      app,
+      pkpInfo,
+    });
     const { scheduleId } = ScheduleIdentitySchema.parse(req.params);
 
-    await cancelJob({ pkpInfo, scheduleId });
+    await cancelJob({ ...scheduleParams, scheduleId });
 
     res.json({ success: true });
   } catch (err) {

@@ -2,23 +2,25 @@ import consola from 'consola';
 
 import { IRelayPKP } from '@lit-protocol/types';
 
+import { AppData, getJobVersion } from './jobVersion';
 import * as optimizeMorphoYieldJobDef from './optimizeMorphoYield';
 import { getAgenda } from '../agenda/agendaClient';
 import {
   baseProvider,
   getAddressesByChainId,
   getERC20Balance,
-  getMorphoPositions,
-  redeemMorphoVaults,
+  getUserPositions,
+  redeemVaults,
 } from './optimizeMorphoYield/utils';
 import { MorphoSwap } from '../mongo/models/MorphoSwap';
 
 interface FindSpecificScheduledJobParams {
   mustExist?: boolean;
-  pkpInfo: IRelayPKP;
+  walletAddress: string;
 }
 
 interface CancelJobParams {
+  app: AppData;
   pkpInfo: IRelayPKP;
   scheduleId: string;
 }
@@ -58,7 +60,7 @@ export async function findJob({
   return jobs[0];
 }
 
-export async function cancelJob({ pkpInfo, scheduleId }: CancelJobParams) {
+export async function cancelJob({ app, pkpInfo, scheduleId }: CancelJobParams) {
   const walletAddress = pkpInfo.ethAddress;
 
   // Idempotent; if a job we're trying to disable doesn't exist, it is disabled.
@@ -73,13 +75,14 @@ export async function cancelJob({ pkpInfo, scheduleId }: CancelJobParams) {
   await job.save();
 
   if (job) {
-    const userPositions = await getMorphoPositions({
+    const userPositions = await getUserPositions({
       pkpInfo,
       chainId: baseProvider.network.chainId,
     });
     const userVaultPositions = userPositions?.user.vaultPositions;
     const redeems = userVaultPositions?.length
-      ? await redeemMorphoVaults({
+      ? await redeemVaults({
+          app,
           pkpInfo,
           userVaultPositions,
           provider: baseProvider,
@@ -108,7 +111,7 @@ export async function cancelJob({ pkpInfo, scheduleId }: CancelJobParams) {
 }
 
 export async function createJob(
-  data: Omit<optimizeMorphoYieldJobDef.JobParams, 'updatedAt'>,
+  data: Omit<optimizeMorphoYieldJobDef.JobParams, 'jobVersion' | 'updatedAt'>,
   options: {
     interval?: string;
     schedule?: string;
@@ -117,16 +120,22 @@ export async function createJob(
   const agenda = getAgenda();
   const walletAddress = data.pkpInfo.ethAddress;
 
+  let resetSchedule = false;
+
   // Create a new job instance
   let job = await findJob({ walletAddress, mustExist: false });
   if (!job) {
     job = agenda.create<optimizeMorphoYieldJobDef.JobParams>(optimizeMorphoYieldJobDef.jobName, {
       ...data,
+      jobVersion: getJobVersion(data.app.version),
       updatedAt: new Date(),
     });
 
     // Currently we only allow a single Vincent Yield per walletAddress
-    job.unique({ 'data.pkpInfo.ethAddress': data.pkpInfo.walletAddress });
+    job.unique({ 'data.pkpInfo.ethAddress': walletAddress });
+  } else {
+    // Job was already created, reset schedule to run now
+    resetSchedule = true;
   }
 
   // Schedule the job based on provided options
@@ -142,8 +151,11 @@ export async function createJob(
   // Activate the job and save it to persist it
   job.attrs.data.updatedAt = new Date();
   job.enable();
+
   await job.save();
   logger.log(`Created Vincent Yield job ${job.attrs._id}`);
+
+  if (resetSchedule) job.run();
 
   return job;
 }
