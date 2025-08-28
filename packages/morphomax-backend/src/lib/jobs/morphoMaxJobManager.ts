@@ -1,4 +1,5 @@
 import consola from 'consola';
+import { ethers } from 'ethers';
 
 import { IRelayPKP } from '@lit-protocol/types';
 
@@ -31,9 +32,49 @@ export async function listJobsByWalletAddress({ walletAddress }: { walletAddress
   const agendaClient = getAgenda();
   logger.log('listing jobs', { walletAddress });
 
-  return (await agendaClient.jobs({
+  const agendaJobs = await agendaClient.jobs({
     'data.pkpInfo.ethAddress': walletAddress,
-  })) as optimizeMorphoYieldJobDef.JobType[];
+  });
+
+  const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
+
+  const jobsWithStatus = await Promise.all(
+    agendaJobs.map(async (agendaJob) => {
+      const { pkpInfo } = agendaJob.attrs.data;
+
+      const [userBalance, userPositions] = await Promise.all<any>([
+        getERC20Balance({
+          pkpInfo,
+          provider: baseProvider,
+          tokenAddress: USDC_ADDRESS,
+        }),
+        getUserPositions({
+          pkpInfo,
+          chainId: baseProvider.network.chainId,
+        }),
+      ]);
+
+      return {
+        _id: String(agendaJob.attrs._id),
+        data: agendaJob.attrs.data,
+        disabled: agendaJob.attrs.disabled,
+        failedAt: agendaJob.attrs.failedAt,
+        failReason: agendaJob.attrs.failReason,
+        investedAmountUsd: String(
+          userPositions.user.vaultPositions.reduce(
+            (acc, vaultPosition) => acc + vaultPosition.state.assetsUsd,
+            0
+          )
+        ),
+        lastFinishedAt: agendaJob.attrs.lastFinishedAt,
+        lastRunAt: agendaJob.attrs.lastRunAt,
+        nextRunAt: agendaJob.attrs.nextRunAt,
+        uninvestedAmountUsd: ethers.utils.formatUnits(userBalance.balance, userBalance.decimals),
+      };
+    })
+  );
+
+  return jobsWithStatus;
 }
 
 export async function findJob(
