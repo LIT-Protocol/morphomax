@@ -74,6 +74,19 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose, walle
             <Copy className="w-4 h-4 mr-2" />
             {copied ? 'Copied!' : 'Copy Address'}
           </Button>
+
+          <p className="text-center text-sm text-gray-500">
+            Bridge from any chain using{' '}
+            <a
+              href={`https://app.debridge.finance/?r=32300&address=${walletAddress}&inputChain=&outputChain=8453&inputCurrency=&outputCurrency=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&dlnMode=simple`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:opacity-80"
+              title="deBridge"
+            >
+              deBridge
+            </a>{' '}
+          </p>
         </div>
 
         <div className={`px-4 sm:px-6 py-3 border-t ${theme.cardBorder} text-center`}>
