@@ -16,7 +16,7 @@ export const handleListSchedulesRoute = async (req: VincentAuthenticatedRequest,
     } = req.user.decodedJWT.payload;
     const schedules = await listJobsByWalletAddress({ walletAddress: ethAddress });
 
-    res.json({ data: schedules.map((s) => s.toJson()), success: true });
+    res.json({ data: schedules, success: true });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
@@ -59,7 +59,7 @@ export const handleListScheduleSwapsRoute = async (
     .lean();
 
   if (swaps.length === 0) {
-    res.status(404).json({ error: `No morpho swaps found for wallet address ${ethAddress}` });
+    res.status(404).json({ error: `No swaps found for wallet address ${ethAddress}` });
     return;
   }
 
