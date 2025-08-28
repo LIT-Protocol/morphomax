@@ -10,22 +10,24 @@ interface WalletModalProps {
   walletAddress: string;
 }
 
-export const WalletModal: React.FC<WalletModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  walletAddress
-}) => {
+export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose, walletAddress }) => {
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`w-full max-w-md ${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl overflow-hidden`} onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
+      <div
+        className={`w-full max-w-md ${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl overflow-hidden`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={`px-4 sm:px-6 py-4 border-b ${theme.cardBorder}`}>
-          <h2 className={`text-lg font-medium ${theme.text} text-center`}>Your Vault Wallet</h2>
+          <h2 className={`text-lg font-medium ${theme.text} text-center`}>Your Agent Wallet</h2>
         </div>
-        
+
         <div className="px-4 sm:px-6 py-6 space-y-4">
           {/* QR Code with Orange styling and logo */}
           <div className="text-center space-y-3">
@@ -53,11 +55,9 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Address below QR code */}
-            <p className={`text-xs ${theme.textMuted} font-mono break-all px-2`}>
-              {walletAddress}
-            </p>
+            <p className={`text-xs ${theme.textMuted} font-mono break-all px-2`}>{walletAddress}</p>
           </div>
 
           {/* Copy Button */}
@@ -74,7 +74,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             <Copy className="w-4 h-4 mr-2" />
             {copied ? 'Copied!' : 'Copy Address'}
           </Button>
-
         </div>
 
         <div className={`px-4 sm:px-6 py-3 border-t ${theme.cardBorder} text-center`}>
