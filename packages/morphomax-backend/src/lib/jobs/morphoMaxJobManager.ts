@@ -60,12 +60,14 @@ export async function listJobsByWalletAddress({ walletAddress }: { walletAddress
         disabled: agendaJob.attrs.disabled,
         failedAt: agendaJob.attrs.failedAt,
         failReason: agendaJob.attrs.failReason,
-        investedAmountUsd: String(
-          userPositions.user.vaultPositions.reduce(
-            (acc, vaultPosition) => acc + vaultPosition.state.assetsUsd,
-            0
-          )
-        ),
+        investedAmountUsd: userPositions?.user.vaultPositions
+          ? String(
+              userPositions.user.vaultPositions.reduce(
+                (acc, vaultPosition) => acc + (vaultPosition.state?.assetsUsd || 0),
+                0
+              )
+            )
+          : 0,
         lastFinishedAt: agendaJob.attrs.lastFinishedAt,
         lastRunAt: agendaJob.attrs.lastRunAt,
         nextRunAt: agendaJob.attrs.nextRunAt,
