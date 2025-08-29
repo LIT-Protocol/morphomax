@@ -241,7 +241,7 @@ async function approveMorphoVault27({
 
 const approveFunctionMap: Record<
   number,
-  (params: ApproveFunctionParams) => Promise<ApproveSuccess>
+  (params: ApproveFunctionParams) => Promise<ApproveResult>
 > = {
   6: approveMorphoVault6,
   27: approveMorphoVault27,
