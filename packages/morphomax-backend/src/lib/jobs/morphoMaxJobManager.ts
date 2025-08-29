@@ -1,5 +1,6 @@
 import consola from 'consola';
 import { ethers } from 'ethers';
+import { mongo } from 'mongoose';
 
 import { IRelayPKP } from '@lit-protocol/types';
 
@@ -17,6 +18,7 @@ import { MorphoSwap } from '../mongo/models/MorphoSwap';
 
 interface FindSpecificScheduledJobParams {
   mustExist?: boolean;
+  scheduleId?: string;
   walletAddress: string;
 }
 
@@ -28,13 +30,32 @@ interface CancelJobParams {
 
 const logger = consola.withTag('optimizeMorphoYieldJobManager');
 
-export async function listJobsByWalletAddress({ walletAddress }: { walletAddress: string }) {
+export async function findJobs(
+  params: FindSpecificScheduledJobParams
+): Promise<optimizeMorphoYieldJobDef.JobType[]>;
+export async function findJobs({
+  mustExist,
+  scheduleId,
+  walletAddress,
+}: FindSpecificScheduledJobParams): Promise<optimizeMorphoYieldJobDef.JobType[]> {
   const agendaClient = getAgenda();
-  logger.log('listing jobs', { walletAddress });
 
-  const agendaJobs = await agendaClient.jobs({
+  const jobs = ((await agendaClient.jobs({
+    ...(scheduleId ? { _id: new mongo.ObjectId(scheduleId) } : {}),
     'data.pkpInfo.ethAddress': walletAddress,
-  });
+  })) || []) as optimizeMorphoYieldJobDef.JobType[];
+
+  logger.log(`Found ${jobs.length} jobs for address ${walletAddress}`);
+  if (mustExist && !jobs.length) {
+    throw new Error(`No Vincent Yield schedule found for ${walletAddress}`);
+  }
+
+  return jobs;
+}
+
+export async function listJobsByWalletAddress({ walletAddress }: { walletAddress: string }) {
+  logger.log('listing jobs', { walletAddress });
+  const agendaJobs = await findJobs({ walletAddress });
 
   const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
 
@@ -42,7 +63,7 @@ export async function listJobsByWalletAddress({ walletAddress }: { walletAddress
     agendaJobs.map(async (agendaJob) => {
       const { pkpInfo } = agendaJob.attrs.data;
 
-      const [userBalance, userPositions] = await Promise.all<any>([
+      const [userBalance, userPositions] = await Promise.all([
         getERC20Balance({
           pkpInfo,
           provider: baseProvider,
@@ -79,36 +100,12 @@ export async function listJobsByWalletAddress({ walletAddress }: { walletAddress
   return jobsWithStatus;
 }
 
-export async function findJob(
-  params: FindSpecificScheduledJobParams
-): Promise<optimizeMorphoYieldJobDef.JobType>;
-export async function findJob(
-  params: FindSpecificScheduledJobParams
-): Promise<optimizeMorphoYieldJobDef.JobType | undefined>;
-export async function findJob({
-  mustExist,
-  walletAddress,
-}: FindSpecificScheduledJobParams): Promise<optimizeMorphoYieldJobDef.JobType | undefined> {
-  const agendaClient = getAgenda();
-
-  const jobs = (await agendaClient.jobs({
-    'data.pkpInfo.ethAddress': walletAddress,
-  })) as optimizeMorphoYieldJobDef.JobType[];
-
-  logger.log(`Found ${jobs.length} jobs for address ${walletAddress}`);
-  if (mustExist && !jobs.length) {
-    throw new Error(`No Vincent Yield schedule found for ${walletAddress}`);
-  }
-
-  return jobs[0];
-}
-
 export async function cancelJob({ app, pkpInfo, scheduleId }: CancelJobParams) {
   const walletAddress = pkpInfo.ethAddress;
 
-  // Idempotent; if a job we're trying to disable doesn't exist, it is disabled.
-  const job = await findJob({ walletAddress, mustExist: false });
-
+  // Idempotent; if a job we're trying to disable doesn't return, it is disabled or does not belong to this wallet.
+  const jobs = await findJobs({ scheduleId, walletAddress, mustExist: false });
+  const job = jobs[0];
   if (!job) return null;
 
   logger.log(`Disabling Vincent Yield job for ${walletAddress}`);
@@ -165,8 +162,9 @@ export async function createJob(
 
   let resetSchedule = false;
 
-  // Create a new job instance
-  let job = await findJob({ walletAddress, mustExist: false });
+  // Look for user jobs and create one if none exist
+  const jobs = await findJobs({ walletAddress, mustExist: false });
+  let job = jobs[0];
   if (!job) {
     job = agenda.create<optimizeMorphoYieldJobDef.JobParams>(optimizeMorphoYieldJobDef.jobName, {
       ...data,
