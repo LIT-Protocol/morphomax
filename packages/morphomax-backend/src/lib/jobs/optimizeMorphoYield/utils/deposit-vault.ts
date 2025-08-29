@@ -151,7 +151,7 @@ async function approveMorphoVault6({
       pkpInfo,
       provider,
       isSponsored: fullApproveParams.alchemyGasSponsor,
-      operationHash: erc20ApprovalExecutionResult.approvalTxHash,
+      operationHash: erc20ApprovalExecutionResult.approvalTxHash as `0x${string}`,
     });
     txHash = operationHashes.txHash;
     useropHash = operationHashes.useropHash;
@@ -226,7 +226,7 @@ async function approveMorphoVault27({
     pkpInfo,
     provider,
     isSponsored: fullApproveParams.alchemyGasSponsor,
-    operationHash: morphoDepositExecutionResult.txHash,
+    operationHash: morphoDepositExecutionResult.txHash as `0x${string}`,
   });
 
   return {
@@ -241,7 +241,7 @@ async function approveMorphoVault27({
 
 const approveFunctionMap: Record<
   number,
-  (params: ApproveFunctionParams) => Promise<ApproveSuccess>
+  (params: ApproveFunctionParams) => Promise<ApproveResult>
 > = {
   6: approveMorphoVault6,
   27: approveMorphoVault27,
@@ -299,7 +299,7 @@ async function depositMorphoVault6({
     pkpInfo,
     provider,
     isSponsored: fullDepositParams.alchemyGasSponsor,
-    operationHash: morphoDepositExecutionResult.txHash,
+    operationHash: morphoDepositExecutionResult.txHash as `0x${string}`,
   });
 
   return {
@@ -362,7 +362,7 @@ async function depositMorphoVault27({
     pkpInfo,
     provider,
     isSponsored: fullDepositParams.alchemyGasSponsor,
-    operationHash: morphoDepositExecutionResult.txHash,
+    operationHash: morphoDepositExecutionResult.txHash as `0x${string}`,
   });
 
   return {

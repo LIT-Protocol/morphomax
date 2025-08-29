@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 
 import { createAgenda } from '../../agenda/agendaClient';
-import { findJob } from '../morphoMaxJobManager';
+import { findJobs } from '../morphoMaxJobManager';
 import { optimizeMorphoYield } from './optimizeMorphoYield';
 import { disconnectVincentAbilityClients } from './utils';
 import { env } from '../../env';
@@ -22,8 +22,8 @@ async function main() {
   const [agenda, mongo] = await Promise.all<any>([createAgenda(), connectToMongoDB(MONGODB_URI)]);
 
   // Job run
-  const job = await findJob({ walletAddress, mustExist: true });
-  await optimizeMorphoYield(job);
+  const jobs = await findJobs({ walletAddress, mustExist: true });
+  await Promise.all([jobs.map((j) => optimizeMorphoYield(j))]);
 
   // Teardown
   await Promise.all([agenda.stop(), mongo.close(), disconnectVincentAbilityClients()]);

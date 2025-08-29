@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers';
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const decimalBigInt = (extra: Partial<Record<string, any>> = {}) => ({
   get(value: string) {
@@ -99,10 +99,17 @@ const depositSchema = new Schema(
   },
   { _id: false }
 );
-depositSchema.path('approval').discriminator('success', ApprovalSuccessSchema);
-depositSchema.path('approval').discriminator('error', ApprovalErrorSchema);
-depositSchema.path('deposit').discriminator('success', DepositSuccessSchema);
-depositSchema.path('deposit').discriminator('error', DepositErrorSchema);
+const approvalSubdocument = depositSchema.path(
+  'approval'
+) as unknown as mongoose.Schema.Types.Subdocument<any>;
+approvalSubdocument.discriminator('success', ApprovalSuccessSchema);
+approvalSubdocument.discriminator('error', ApprovalErrorSchema);
+
+const depositSubdocument = depositSchema.path(
+  'deposit'
+) as unknown as mongoose.Schema.Types.Subdocument<any>;
+depositSubdocument.discriminator('success', DepositSuccessSchema);
+depositSubdocument.discriminator('error', DepositErrorSchema);
 
 const redeemsArrayItem = RedeemBaseSchema;
 
@@ -241,8 +248,11 @@ const morphoSwapSchemaDefinition = {
 
 const MorphoSwapSchema = new Schema(morphoSwapSchemaDefinition, { timestamps: true });
 
-MorphoSwapSchema.path('redeems').discriminator('success', RedeemSuccessSchema);
-MorphoSwapSchema.path('redeems').discriminator('error', RedeemErrorSchema);
+const redeemsSubdocument = MorphoSwapSchema.path(
+  'redeems'
+) as unknown as mongoose.Schema.Types.DocumentArray;
+redeemsSubdocument.discriminator('success', RedeemSuccessSchema);
+redeemsSubdocument.discriminator('error', RedeemErrorSchema);
 
 // Create compound indices for common query patterns
 MorphoSwapSchema.index({ createdAt: 1, scheduleId: 1 });

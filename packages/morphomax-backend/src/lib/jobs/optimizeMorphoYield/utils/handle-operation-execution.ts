@@ -12,10 +12,10 @@ export async function handleOperationExecution({
   provider,
 }: {
   isSponsored: boolean;
-  operationHash: string;
+  operationHash: `0x${string}`;
   pkpInfo: IRelayPKP;
   provider: ethers.providers.JsonRpcProvider;
-}): Promise<{ txHash: string; useropHash: string | undefined }> {
+}): Promise<{ txHash: `0x${string}`; useropHash: `0x${string}` | undefined }> {
   let txHash;
   let useropHash;
   if (!isSponsored) {
