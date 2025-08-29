@@ -57,7 +57,11 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose, walle
             </div>
 
             {/* Address below QR code */}
-            <p className={`text-xs ${theme.textMuted} font-mono break-all px-2`}>{walletAddress}</p>
+            <p
+              className={`text-xs text-orange-500 font-mono break-all tracking-widest text-center mt-1`}
+            >
+              {walletAddress}
+            </p>
           </div>
 
           {/* Copy Button */}
