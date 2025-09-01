@@ -86,7 +86,7 @@ importers:
         specifier: ^8.29.0
         version: 8.29.0(eslint@8.57.1)(typescript@5.8.2)
 
-  packages/morphomax-backend:
+  packages/yield-backend:
     dependencies:
       '@apollo/client':
         specifier: ^3.13.8
@@ -237,7 +237,7 @@ importers:
         specifier: ^3.25.76
         version: 3.25.76
 
-  packages/morphomax-frontend:
+  packages/yield-frontend:
     dependencies:
       '@lit-protocol/auth-helpers':
         specifier: 7.2.0

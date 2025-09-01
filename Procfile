@@ -1,1 +1,1 @@
-web: cd packages/morphomax-backend && pnpm start
+web: cd packages/yield-backend && pnpm start

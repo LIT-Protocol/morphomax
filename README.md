@@ -1,6 +1,6 @@
-# Morphomax Agent
+# Vincent Yield Agent
 
-#### This monorepo contains packages that are used to drive the _Vincent Morphomax_ agent.
+#### This monorepo contains packages that are used to drive the _Vincent Yield_ agent.
 
 ## ❌ Installation
 
@@ -36,10 +36,10 @@ pnpm start
 
 ## 📦 Packages
 
-| Package                                                     | Purpose                                                                          |
-| ----------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| [morphomax-frontend](packages/morphomax-frontend/README.md) | Frontend for end-users to define MorphoMax tasks to be run on a schedule         |
-| [morphomax-backend](packages/morphomax-backend/README.md)   | Backend REST API and worker instance using NodeJS; deployed to Heroku currently. |
+| Package                                             | Purpose                                                                          |
+| --------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [yield-frontend](packages/yield-frontend/README.md) | Frontend for end-users to define Vincent Yield tasks to be run on a schedule     |
+| [yield-backend](packages/yield-backend/README.md)   | Backend REST API and worker instance using NodeJS; deployed to Heroku currently. |
 
 ## 💻 Development
 
