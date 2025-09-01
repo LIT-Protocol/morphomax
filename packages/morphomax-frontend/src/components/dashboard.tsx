@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { RefreshCw, Wallet, StopCircle } from 'lucide-react';
+import { Github, RefreshCw, StopCircle, Wallet } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -189,7 +189,13 @@ export const Dashboard: React.FC = () => {
               rel="noopener noreferrer"
               className="underline text-orange-600 dark:text-orange-400"
             >
-              Vincent
+              <span className="inline-flex items-center gap-1 align-middle">
+                <span>Vincent</span>
+                <img
+                  src={isDark ? '/vincent-logos/logo-white.svg' : '/vincent-logos/logo.svg'}
+                  className="h-3 w-3 flex-shrink-0 inline-block align-middle"
+                />
+              </span>
             </a>{' '}
             or checkout the{' '}
             <a
@@ -198,8 +204,11 @@ export const Dashboard: React.FC = () => {
               rel="noopener noreferrer"
               className="underline text-orange-600 dark:text-orange-400"
             >
-              code
+              <span className="inline-flex items-center gap-1 align-middle">
+                <span>code</span> <Github className="w-3 h-3 inline-block align-middle" />
+              </span>
             </a>
+            .
           </p>
 
           <div className="mt-3 flex justify-center">
@@ -208,7 +217,7 @@ export const Dashboard: React.FC = () => {
               variant="default"
               size="sm"
               onClick={() => setShowWalletModal(true)}
-              className="bg-orange-600 hover:bg-orange-700 dark:bg-orange-400 dark:hover:bg-orange-300 text-white font-semibold px-4 py-2 rounded shadow transition-colors"
+              className="bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600 transition-colors text-base min-w-28"
             >
               Deposit USDC on Base
             </Button>
