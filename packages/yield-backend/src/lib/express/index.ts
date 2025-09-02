@@ -55,14 +55,14 @@ export const registerRoutes = (app: Express) => {
   app.post('/schedule', middleware, setSentryUserMiddleware, handler(handleCreateScheduleRoute));
   app.get(
     '/schedule/:scheduleId/swaps',
-    setSentryUserMiddleware,
     middleware,
+    setSentryUserMiddleware,
     handler(handleListScheduleSwapsRoute)
   );
   app.delete(
     '/schedule/:scheduleId',
-    setSentryUserMiddleware,
     middleware,
+    setSentryUserMiddleware,
     handler(handleDeleteScheduleRoute)
   );
 
