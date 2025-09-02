@@ -54,7 +54,7 @@ const meta = {
         </form>
       </BoxContent>
       <BoxFooter className="flex justify-between">
-        <Button variant="outline">Cancel</Button>
+        <Button variant="secondary-outline">Cancel</Button>
         <Button>Register</Button>
       </BoxFooter>
     </Box>

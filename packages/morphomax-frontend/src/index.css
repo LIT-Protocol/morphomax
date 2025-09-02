@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+    font-family: 'ITC Avant Garde Gothic';
+    src: url('/fonts/itc-avant-garde/medium/ITCAvantGardeStd-Md.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -17,6 +25,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   --radius: 0.625rem;
+  --footer-text-color: #121212;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -123,6 +132,7 @@ button:focus-visible {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --footer-text-color: #FFFFFF;
 }
 
 @theme inline {

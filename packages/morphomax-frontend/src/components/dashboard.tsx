@@ -1,18 +1,21 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { RefreshCw, Wallet, StopCircle } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { JwtContext } from '@/contexts/jwt';
 import { useBackend, Strategy, Schedule } from '@/hooks/useBackend';
 import { env } from '@/config/env';
-import { Footer } from '@/components/shared/Footer';
-import { Header } from '@/components/shared/Header';
+import { Footer } from '@/components/ui/footer';
+import { Header } from '@/components/ui/header';
+import { PageHeader } from '@/components/ui/page-header';
 import { WalletModal } from '@/components/WalletModal';
 import { theme } from '@/components/theme';
 import { useTheme } from '@/components/shared/useTheme';
 import { useFetchUsdcBalance } from '@/hooks/useFetchUsdcBalance';
 import { ApyDropdown } from '@/components/ApyDropdown';
+import { Balance } from '@/components/ui/balance';
+import { FundsDeployed } from '@/components/ui/funds-deployed';
 
 const { VITE_VINCENT_YIELD_MINIMUM_DEPOSIT } = env;
 
@@ -149,73 +152,29 @@ export const Dashboard: React.FC = () => {
           isDark={isDark}
           onToggleTheme={toggleTheme}
           rightButton={
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={logOut}
-                className={`${theme.text} hover:bg-white/10 px-2 sm:px-3`}
-              >
-                Log Out
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowWalletModal(true)}
-                className={`${theme.text} hover:bg-white/10 px-2 sm:px-3`}
-              >
-                <Wallet className="w-4 h-4" />
-              </Button>
-            </>
+            <Button variant="secondary-outline" size="sm" onClick={logOut} className="px-2 sm:px-3">
+              Log Out
+            </Button>
           }
         />
 
-        <div className={`px-3 sm:px-6 pt-6 pb-4 border-b ${theme.cardBorder}`}>
-          <h1
-            className={`font-medium ${theme.text} text-center leading-tight`}
-            style={{ fontSize: '30px' }}
-          >
-            Vincent Yield Maximizer
-          </h1>
-          <div className="text-xs uppercase tracking-widest font-normal text-orange-500 text-center mt-1">
-            EARLY ACCESS
-          </div>
-          <p className={`${theme.textMuted} text-sm text-center mt-2`}>
-            This app uses the Vincent platform to securely and verifiably auto-rotate your Base USDC
-            into top yield opportunities on Morpho. Learn more about{' '}
-            <a
-              href="https://docs.heyvincent.ai/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-orange-600 dark:text-orange-400"
-            >
-              Vincent
-            </a>{' '}
-            or checkout the{' '}
-            <a
-              href="https://github.com/LIT-Protocol/morphomax"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-orange-600 dark:text-orange-400"
-            >
-              code
-            </a>
-          </p>
+        <div className={`pt-5 pb-3 border-b ${theme.cardBorder}`}>
+          <PageHeader
+            title="Vincent Yield Agent"
+            subtitle="EARLY ACCESS"
+            description={
+              <>
+                This app uses the Vincent platform to securely and verifiably auto-rotate your Base
+                USDC into top yield opportunities on Morpho.
+              </>
+            }
+            size="lg"
+          />
+        </div>
 
-          <div className="mt-3 flex justify-center">
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              onClick={() => setShowWalletModal(true)}
-              className="bg-orange-600 hover:bg-orange-700 dark:bg-orange-400 dark:hover:bg-orange-300 text-white font-semibold px-4 py-2 rounded shadow transition-colors"
-            >
-              Deposit USDC on Base
-            </Button>
-          </div>
-
+        <div className={`px-3 sm:px-6 py-6`}>
           {/* Yield Information */}
-          <div className="mt-3 flex justify-center">
+          <div className="flex justify-center">
             {yieldLoading ? (
               <div className="flex items-center justify-center gap-2 px-3 py-1.5">
                 <RefreshCw className="h-3 w-3 text-orange-500 animate-spin" />
@@ -253,152 +212,28 @@ export const Dashboard: React.FC = () => {
 
               const failedAfterLastRun =
                 failedAt && lastFinishedAt ? new Date(lastFinishedAt) <= new Date(failedAt) : false;
-              const status = failedAfterLastRun ? 'Failed' : 'Active';
+              const status = failedAfterLastRun ? 'Inactive' : 'Active';
 
               return (
                 <div key={uniqueKey} className="space-y-3">
-                  {/* Agent Status Card */}
-                  <div className="bg-gradient-to-r from-orange-50 to-green-50 dark:from-orange-900/20 dark:to-green-900/20 p-3 rounded-lg border border-orange-100 dark:border-orange-800/30 flex flex-row items-center justify-between gap-4">
-                    <div className="relative group">
-                      <img
-                        src="/external-logos/usdc-coin-logo.svg"
-                        alt="USDC"
-                        className="w-7 h-7"
-                      />
-                      <img
-                        src="/external-logos/base-logo.svg"
-                        alt="Base"
-                        className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-white ring-1 ring-white"
-                      />
-                      <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap px-2 py-1 text-[10px] rounded bg-black text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow">
-                        Base USDC
-                      </div>
-                    </div>
-                    <div className="flex-grow-1 flex flex-col items-start justify-evenly gap-2">
-                      <p className="text-sm">
-                        <span className={`text-xs font-medium ${theme.text}`}>
-                          Funds Deployed:{' '}
-                        </span>
-                        $
-                        {(parseFloat(uninvestedAmountUsd) + parseFloat(investedAmountUsd)).toFixed(
-                          2
-                        )}{' '}
-                        USD
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex gap-2">
-                        <span
-                          className={`text-s font-bold ${
-                            status === 'Active'
-                              ? 'text-green-600 dark:text-green-400'
-                              : 'text-red-600 dark:text-red-400'
-                          }`}
-                        >
-                          {status}
-                        </span>
-                        {status === 'Active' && (
-                          <div className="relative">
-                            <button
-                              onClick={() =>
-                                setShowStopConfirmation(
-                                  showStopConfirmation === uniqueKey ? null : uniqueKey
-                                )
-                              }
-                              disabled={stoppingSchedule === uniqueKey}
-                              className="p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors duration-200"
-                              title="Stop Vincent Yield"
-                            >
-                              {stoppingSchedule === uniqueKey ? (
-                                <RefreshCw className="h-4 w-4 text-red-500 animate-spin" />
-                              ) : (
-                                <StopCircle className="h-4 w-4 text-red-500 hover:text-red-600" />
-                              )}
-                            </button>
-
-                            {/* Stop Confirmation Dropdown */}
-                            {showStopConfirmation === uniqueKey && (
-                              <>
-                                <div
-                                  className="fixed inset-0 z-40"
-                                  onClick={() => setShowStopConfirmation(null)}
-                                />
-                                <div className="absolute bottom-full right-0 mb-2 w-48 z-50">
-                                  {/* Dropdown content */}
-                                  <div
-                                    className={`${theme.mainCard} border ${theme.mainCardBorder} rounded-xl shadow-lg overflow-hidden`}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <div className="p-2 space-y-2">
-                                      <div>
-                                        <p
-                                          className={`${theme.text} text-xs leading-snug text-center`}
-                                        >
-                                          Stop Vincent Yield?
-                                        </p>
-                                      </div>
-
-                                      <button
-                                        onClick={() => {
-                                          if (showStopConfirmation) {
-                                            handleStopSchedule(showStopConfirmation);
-                                            setShowStopConfirmation(null);
-                                          }
-                                        }}
-                                        disabled={!!stoppingSchedule}
-                                        className="w-full px-2 py-1.5 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1"
-                                      >
-                                        {stoppingSchedule ? (
-                                          <>
-                                            <RefreshCw className="h-3 w-3 animate-spin" />
-                                            Stopping...
-                                          </>
-                                        ) : (
-                                          'Stop Agent'
-                                        )}
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                  {/* Arrow pointing up */}
-                                  <div className="flex justify-end pr-1">
-                                    <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-white dark:border-b-gray-800"></div>
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <a
-                          href={`https://basescan.org/address/${authInfo?.pkp.ethAddress}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                        >
-                          <span className="font-mono text-[10px] bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">
-                            {authInfo?.pkp.ethAddress?.slice(0, 6)}...
-                            {authInfo?.pkp.ethAddress?.slice(-4)}
-                          </span>
-                          <span>BaseScan</span>
-                          <svg
-                            className="w-2.5 h-2.5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                            />
-                          </svg>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+                  <FundsDeployed
+                    deployedAmount={(
+                      parseFloat(uninvestedAmountUsd) + parseFloat(investedAmountUsd)
+                    ).toFixed(2)}
+                    status={status}
+                    walletAddress={authInfo?.pkp.ethAddress || ''}
+                    onStop={() => {
+                      if (showStopConfirmation) {
+                        handleStopSchedule(showStopConfirmation);
+                        setShowStopConfirmation(null);
+                      }
+                    }}
+                    stopping={stoppingSchedule === uniqueKey}
+                    showStopConfirmation={showStopConfirmation === uniqueKey}
+                    onToggleStopConfirmation={() =>
+                      setShowStopConfirmation(showStopConfirmation === uniqueKey ? null : uniqueKey)
+                    }
+                  />
                 </div>
               );
             })}
@@ -409,90 +244,17 @@ export const Dashboard: React.FC = () => {
           <div className="px-3 sm:px-6 pt-2 pb-4 sm:pb-6">
             <div className="mt-2 sm:mt-3 pt-1 sm:pt-2">
               <div className="flex flex-col space-y-3">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`${theme.textMuted} font-medium`}
-                      style={{ fontSize: 'clamp(0.625rem, 3.5vw, 0.875rem)' }}
-                    >
-                      Balance
-                    </div>
-                    {balanceLoading ? (
-                      <div className="p-1">
-                        <RefreshCw className="h-3 w-3 text-orange-500 animate-spin" />
-                      </div>
-                    ) : !balanceError ? (
-                      <button
-                        onClick={refetchBalance}
-                        className={`p-1 ${theme.itemHoverBg} ${theme.textMuted} hover:${theme.text} transition-all duration-200`}
-                        title="Refresh balance"
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                      </button>
-                    ) : null}
-                    {balanceError && (
-                      <button
-                        onClick={refetchBalance}
-                        className="text-red-500 hover:text-red-400 font-normal transition-colors"
-                        style={{ fontSize: 'clamp(0.75rem, 3vw, 0.875rem)' }}
-                      >
-                        Error - Retry
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <img
-                        src="/external-logos/usdc-coin-logo.svg"
-                        alt="USDC"
-                        className="w-7 h-7"
-                      />
-                      <img
-                        src="/external-logos/base-logo.svg"
-                        alt="Base"
-                        className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-white ring-1 ring-white"
-                      />
-                    </div>
-
-                    <div className="flex-1 space-y-2">
-                      <div
-                        className="flex justify-between"
-                        style={{ fontSize: 'clamp(0.5rem, 3vw, 0.75rem)' }}
-                      >
-                        <span className={theme.textMuted}>
-                          ${balanceFormatted || '0.00'} / $
-                          {VITE_VINCENT_YIELD_MINIMUM_DEPOSIT.toFixed(2)} USDC
-                        </span>
-                        {!depositComplete && (
-                          <span
-                            style={{
-                              color: '#ff722c',
-                              fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)',
-                            }}
-                          >
-                            ${amountNeeded.toFixed(2)} needed
-                          </span>
-                        )}
-                      </div>
-                      <div className="h-1.5 bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                        <div
-                          className="h-full transition-all duration-500 ease-out"
-                          style={{
-                            width: `${Math.min(progressPercentage, 100)}%`,
-                            backgroundColor: depositComplete ? '#fbbf24' : '#ff722c',
-                            ...(depositComplete && {
-                              backgroundImage:
-                                'linear-gradient(90deg, #fbbf24 0%, #ffffff60 50%, #fbbf24 100%)',
-                              backgroundSize: '200% 100%',
-                              animation: 'shimmer 2s linear infinite',
-                            }),
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <Balance
+                  balanceFormatted={balanceFormatted || '0.00'}
+                  minimumDeposit={VITE_VINCENT_YIELD_MINIMUM_DEPOSIT}
+                  balanceLoading={balanceLoading}
+                  balanceError={balanceError}
+                  depositComplete={depositComplete}
+                  amountNeeded={amountNeeded}
+                  progressPercentage={progressPercentage}
+                  onRefreshBalance={refetchBalance}
+                  onDepositClick={() => setShowWalletModal(true)}
+                />
               </div>
             </div>
           </div>
@@ -511,22 +273,18 @@ export const Dashboard: React.FC = () => {
               <div className="text-red-500 text-xs text-center font-medium">{activationError}</div>
             )}
 
-            <button
+            <Button
               onClick={handleActivate}
               disabled={!depositComplete || loading}
-              className="font-semibold tracking-wide transition-all duration-200 border text-white"
+              variant="primary"
+              size="md"
               style={{
-                borderRadius: '0.5rem',
                 fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)',
                 padding: 'clamp(0.375rem, 0.75vw, 0.5rem) clamp(1rem, 4vw, 2rem)',
-                backgroundColor: !depositComplete || loading ? '#e5e7eb' : '#f97316',
-                borderColor: !depositComplete || loading ? '#e5e7eb' : '#f97316',
-                color: !depositComplete || loading ? '#9ca3af' : '#ffffff',
-                cursor: !depositComplete || loading ? 'not-allowed' : 'pointer',
               }}
             >
               {loading ? 'Activating...' : 'Activate Vincent Yield'}
-            </button>
+            </Button>
           </div>
         )}
 

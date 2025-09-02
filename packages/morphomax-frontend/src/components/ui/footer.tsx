@@ -1,23 +1,36 @@
 import React from 'react';
+import { Github, HelpCircle } from 'lucide-react';
+
 import { theme } from '@/components/theme';
+
+const TextSeparator = () => {
+  return (
+    <span className="mx-1" style={{ color: 'var(--footer-text-color, #121212)' }}>
+      {' '}
+      /{' '}
+    </span>
+  );
+};
 
 export const Footer: React.FC = () => {
   return (
-    <div className={`px-3 sm:px-6 py-3 border-t ${theme.cardBorder} ${theme.cardBg} flex flex-col items-center gap-2 rounded-b-2xl`}>
-      <div className={`flex flex-col items-center gap-1 text-xs font-medium ${theme.text}`}>
-        <div className="flex flex-col items-center gap-1 text-sm font-normal"></div>
-        <span>Securing Autonomy</span>
-      </div>
-      <div className={`flex items-center gap-2 text-xs font-medium ${theme.text}`}>
+    <div
+      className={`px-3 sm:px-6 py-3 border-t ${theme.cardBorder} ${theme.cardBg} flex flex-col items-center gap-2 rounded-b-2xl`}
+      style={{ fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif' }}
+    >
+      <div
+        className="flex items-center gap-2 text-xs"
+        style={{ color: 'var(--footer-text-color, #121212)' }}
+      >
         <a
           href="https://litprotocol.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 font-medium no-underline !text-orange-500 hover:!text-orange-600 transition-colors"
-          style={{ textDecoration: 'none', fontStyle: 'normal' }}
+          className="inline-flex items-center gap-1.5 no-underline transition-colors"
+          style={{ textDecoration: 'none', fontStyle: 'normal', color: '#FF4205' }}
         >
           <svg
-            className="w-5 h-auto"
+            className="w-4 h-auto"
             width="40"
             viewBox="0 0 311 228"
             fill="none"
@@ -37,37 +50,41 @@ export const Footer: React.FC = () => {
               fill="currentColor"
             />
           </svg>
+          <span>Securing Autonomy</span>
         </a>
       </div>
-      <div className={`flex items-center gap-1 text-xs font-medium ${theme.text}`}>
+      <div
+        className="flex items-center gap-1 text-xs"
+        style={{ color: 'var(--footer-text-color, #121212)' }}
+      >
+        <a
+          href="https://github.com/LIT-Protocol/morphomax"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 no-underline hover:opacity-80 transition-colors"
+          style={{
+            textDecoration: 'none',
+            fontStyle: 'normal',
+            color: 'var(--footer-text-color, #121212)',
+          }}
+        >
+          <Github className="w-3 h-3" style={{ marginTop: '-2px' }} />
+          <span>Github</span>
+        </a>
+        <TextSeparator />
         <a
           href="https://t.me/+aa73FAF9Vp82ZjJh"
           target="_blank"
           rel="noopener noreferrer"
-          className={`font-medium no-underline hover:opacity-80 transition-colors ${theme.text} !text-current`}
-          style={{ textDecoration: 'none', fontStyle: 'normal' }}
+          className="inline-flex items-center gap-1 no-underline hover:opacity-80 transition-colors"
+          style={{
+            textDecoration: 'none',
+            fontStyle: 'normal',
+            color: 'var(--footer-text-color, #121212)',
+          }}
         >
-          Help
-        </a>
-        <span className={`font-medium ${theme.text}`}> / </span>
-        <a
-          href="https://www.litprotocol.com/legal/privacy-policy"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`font-medium no-underline hover:opacity-80 transition-colors ${theme.text} !text-current`}
-          style={{ textDecoration: 'none', fontStyle: 'normal' }}
-        >
-          Privacy
-        </a>
-        <span className={`font-medium ${theme.text}`}> / </span>
-        <a
-          href="https://www.litprotocol.com/legal/terms-of-service"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`font-medium no-underline hover:opacity-80 transition-colors ${theme.text} !text-current`}
-          style={{ textDecoration: 'none', fontStyle: 'normal' }}
-        >
-          Terms
+          <HelpCircle className="w-3 h-3" style={{ marginTop: '-2px' }} />
+          <span>Help</span>
         </a>
       </div>
     </div>
