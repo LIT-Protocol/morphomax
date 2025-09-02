@@ -38,16 +38,6 @@ export const Presentation: React.FC = () => {
             This agent intelligently auto-rotates your stablecoins into top yield opportunities on
             Morpho to maximize your returns
           </p>
-          <p className={`${theme.textMuted} text-sm text-center mt-2`}>
-            <a
-              href="https://github.com/LIT-Protocol/vincent-yield"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-orange-500 transition-colors"
-            >
-              Check it out on Github
-            </a>
-          </p>
 
           {/* Current optimal strategy */}
           <div className="mt-4">
@@ -58,14 +48,7 @@ export const Presentation: React.FC = () => {
         <div className="flex flex-col items-center py-4 sm:py-5 space-y-3">
           <button
             onClick={getJwt}
-            className="font-semibold tracking-wide transition-all duration-200 border text-white hover:opacity-90"
-            style={{
-              borderRadius: '0.5rem',
-              fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)',
-              padding: 'clamp(0.375rem, 0.75vw, 0.5rem) clamp(1rem, 4vw, 2rem)',
-              backgroundColor: '#f97316',
-              borderColor: '#f97316',
-            }}
+            className="bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600 transition-colors text-base min-w-28"
           >
             Connect with Vincent
           </button>

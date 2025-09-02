@@ -1,5 +1,11 @@
 import React from 'react';
+import { Github } from 'lucide-react';
+
 import { theme } from '@/components/theme';
+
+const TextSeparator = () => {
+  return <span className={`font-medium mx-1 ${theme.text}`}> / </span>;
+};
 
 export const Footer: React.FC = () => {
   return (
@@ -43,6 +49,18 @@ export const Footer: React.FC = () => {
       </div>
       <div className={`flex items-center gap-1 text-xs font-medium ${theme.text}`}>
         <a
+          href="https://github.com/LIT-Protocol/morphomax"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`font-medium no-underline hover:opacity-80 transition-colors ${theme.text} !text-current`}
+          style={{ textDecoration: 'none', fontStyle: 'normal' }}
+        >
+          <div className="flex flex-row items-center gap-1">
+            Github <Github className="w-4 h-4" />
+          </div>
+        </a>
+        <TextSeparator />
+        <a
           href="https://t.me/+aa73FAF9Vp82ZjJh"
           target="_blank"
           rel="noopener noreferrer"
@@ -51,7 +69,7 @@ export const Footer: React.FC = () => {
         >
           Help
         </a>
-        <span className={`font-medium ${theme.text}`}> / </span>
+        <TextSeparator />
         <a
           href="https://www.litprotocol.com/legal/privacy-policy"
           target="_blank"
@@ -61,7 +79,7 @@ export const Footer: React.FC = () => {
         >
           Privacy
         </a>
-        <span className={`font-medium ${theme.text}`}> / </span>
+        <TextSeparator />
         <a
           href="https://www.litprotocol.com/legal/terms-of-service"
           target="_blank"
