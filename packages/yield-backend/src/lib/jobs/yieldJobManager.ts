@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import consola from 'consola';
 import { ethers } from 'ethers';
 import { mongo } from 'mongoose';
@@ -120,7 +121,7 @@ export async function cancelJob({ app, pkpInfo, scheduleId }: CancelJobParams) {
       chainId: baseProvider.network.chainId,
     });
     const userVaultPositions = userPositions?.user.vaultPositions;
-    const redeems = userVaultPositions?.length
+    const allRedeems = userVaultPositions?.length
       ? await redeemVaults({
           app,
           pkpInfo,
@@ -128,6 +129,19 @@ export async function cancelJob({ app, pkpInfo, scheduleId }: CancelJobParams) {
           provider: baseProvider,
         })
       : [];
+    const redeems = allRedeems.filter((redeem) => {
+      if (redeem.status !== 'success') {
+        const { error, ...rest } = redeem;
+        Sentry.captureException(error, {
+          extra: {
+            redeem: { ...rest },
+          },
+        });
+        return false;
+      }
+      return true;
+    });
+
     const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
     const tokenBalance = await getERC20Balance({
       pkpInfo,
