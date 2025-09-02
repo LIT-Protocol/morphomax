@@ -1,7 +1,5 @@
 {
   "*.{ts,tsx,cjs,js,json,md}": ["prettier --write"],
-  "packages/morphomax-frontend/**/*.{ts,tsx,cjs,js}": [
-    "pnpm --filter morphomax-frontend -- lint --fix"
-  ],
-  "packages/morphomax-backend/**/*.{ts,tsx,cjs,js}": ["pnpm --filter morphomax-backend lint --fix"]
+  "packages/yield-frontend/**/*.{ts,tsx,cjs,js}": ["pnpm --filter yield-frontend -- lint --fix"],
+  "packages/yield-backend/**/*.{ts,tsx,cjs,js}": ["pnpm --filter yield-backend lint --fix"]
 }

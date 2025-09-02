@@ -1,8 +1,8 @@
 {
-  "name": "vincent-morphomax",
+  "name": "vincent-yield",
   "private": true,
   "version": "1.0.0",
-  "description": "Monorepo for Vincent MorphoMax Agent backend + frontend",
+  "description": "Monorepo for Vincent Yield Agent backend + frontend",
   "homepage": "https://github.com/LIT-protocol/morphomax",
   "engines": {
     "node": "^20.11.1",
@@ -11,7 +11,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm -r run build",
-    "heroku-postbuild": "pnpm --filter morphomax-backend run build && pnpm --filter morphomax-backend run sentry:sourcemaps",
+    "heroku-postbuild": "pnpm --filter yield-backend run build && pnpm --filter morphomax-backend run sentry:sourcemaps",
     "lint": "pnpm -r lint",
     "clean": "pnpm exec rm -Rf node_modules dist && pnpm --parallel -r run clean",
     "test": "pnpm -r run test",
