@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { Job } from '@whisthub/agenda';
 import consola from 'consola';
 import { ethers } from 'ethers';
@@ -20,6 +21,7 @@ import {
 } from './utils';
 import { type MorphoVaultInfo } from './utils/get-morpho-vaults';
 import { env } from '../../env';
+import { normalizeError } from '../../error';
 import { YieldSwap } from '../../mongo/models/YieldSwap';
 
 export type JobType = Job<JobParams>;
@@ -58,10 +60,15 @@ export async function optimizeYield(job: JobType): Promise<void> {
   try {
     const {
       _id,
-      data: { pkpInfo },
+      data: { jobVersion, pkpInfo },
     } = job.attrs;
     let { app } = job.attrs.data;
 
+    Sentry.setUser({
+      app,
+      jobVersion,
+      ethAddress: pkpInfo.ethAddress,
+    });
     consola.log('Starting yield optimization job...', {
       _id,
       pkpInfo,
@@ -78,6 +85,9 @@ export async function optimizeYield(job: JobType): Promise<void> {
     consola.debug('Got top yielding vault:', topVault);
     consola.debug('Got user permitted app version:', userPermittedAppVersion);
 
+    if (!topVault) {
+      throw new Error('No top vault found. Morpho API might be down.');
+    }
     if (!userPermittedAppVersion) {
       throw new Error(
         `User ${pkpInfo.ethAddress} revoked permission to run this app. Used version to generate: ${app.version}`
@@ -85,7 +95,14 @@ export async function optimizeYield(job: JobType): Promise<void> {
     }
 
     // Fix old jobs that didn't have app data
-    if (!app) {
+    if (!app?.version) {
+      Sentry.addBreadcrumb({
+        data: {
+          app,
+          userPermittedAppVersion,
+        },
+        message: 'No app data found in job',
+      });
       app = {
         id: VINCENT_APP_ID,
         version: userPermittedAppVersion,
@@ -99,6 +116,14 @@ export async function optimizeYield(job: JobType): Promise<void> {
     const jobVersionToRun = assertJobVersion(app.version, userPermittedAppVersion);
     if (jobVersionToRun !== app.version) {
       // User updated the permitted app version after creating the job, so we need to update it
+      Sentry.addBreadcrumb({
+        data: {
+          app,
+          jobVersionToRun,
+          userPermittedAppVersion,
+        },
+        message: `User updated the permitted app version after creating the job`,
+      });
       // eslint-disable-next-line no-param-reassign
       job.attrs.data.app = { ...job.attrs.data.app, version: jobVersionToRun };
       await job.save();
@@ -110,11 +135,23 @@ export async function optimizeYield(job: JobType): Promise<void> {
       consola.debug('Vaults to optimize:', vaultsToOptimize);
 
       // Withdraw from vaults to optimize
-      redeems = await redeemVaults({
+      const allRedeems = await redeemVaults({
         app,
         pkpInfo,
         provider: baseProvider,
         userVaultPositions: vaultsToOptimize,
+      });
+      redeems = allRedeems.filter((redeem) => {
+        if (redeem.status !== 'success') {
+          const { error, ...rest } = redeem;
+          Sentry.captureException(error, {
+            extra: {
+              redeem: { ...rest },
+            },
+          });
+          return false;
+        }
+        return true;
       });
     }
 
@@ -127,7 +164,14 @@ export async function optimizeYield(job: JobType): Promise<void> {
     });
     const { balance, decimals } = tokenBalance;
     consola.debug('User USDC balance:', ethers.utils.formatUnits(balance, decimals));
+    Sentry.addBreadcrumb({
+      data: {
+        tokenBalance,
+      },
+      message: 'User USDC balance',
+    });
 
+    // Deposits is an array to future-proof in case we want to make multiple deposits (stables vs not, multiple chains, etc.)
     const deposits: DepositResult[] = [];
     if (balance.gt(MINIMUM_USDC_BALANCE * 10 ** decimals)) {
       // Put all USDC into the top vault
@@ -138,7 +182,35 @@ export async function optimizeYield(job: JobType): Promise<void> {
         provider: baseProvider,
         vault: topVault,
       });
-      deposits.push(depositResult);
+
+      if (depositResult.deposit?.status === 'success') {
+        deposits.push(depositResult);
+      } else if (depositResult.approval.status === 'error') {
+        // What failed is the approval
+        const { error, ...rest } = depositResult.approval;
+        Sentry.captureException(error, {
+          extra: {
+            approval: { ...rest },
+          },
+        });
+      } else if (depositResult.deposit?.status === 'error') {
+        // What failed is the deposit
+        const { error, ...rest } = depositResult.deposit;
+        Sentry.captureException(error, {
+          extra: {
+            approval: depositResult.approval,
+            deposit: { ...rest },
+          },
+        });
+      } else {
+        // WUT? Something else failed...
+        Sentry.captureException(new Error('Unknown deposit error'), {
+          extra: {
+            approval: depositResult.approval,
+            deposit: depositResult.deposit,
+          },
+        });
+      }
     }
 
     consola.log(
@@ -173,7 +245,8 @@ export async function optimizeYield(job: JobType): Promise<void> {
     // Catch-and-rethrow is usually an anti-pattern, but Agenda doesn't log failed job reasons to console
     // so this is our chance to log the job failure details using Consola before we throw the error
     // to Agenda, which will write the failure reason to the Agenda job document in Mongo
-    const err = e as Error;
+    const err = normalizeError(e);
+    Sentry.captureException(err);
     consola.error(err.message, err.stack);
     throw e;
   }

@@ -18,12 +18,9 @@ export async function startWorker() {
       const error = err as Error;
       // If we get an error we know is non-transient (the user must fix the state), disable the job
       // The user can re-enable it after resolving the fatal error.
-      // TODO update with new errors
       if (
-        error?.message?.includes('No native eth balance on account') ||
-        error?.message?.includes('Not enough ETH to pay for gas for token approval') ||
-        error?.message?.includes('Not enough WETH to swap') ||
-        error?.message?.includes('No wEth balance for account')
+        error?.message?.includes('revoked permission to run this app') ||
+        error?.message?.includes('Incompatible job version')
       ) {
         consola.log(
           `Disabling job ${optimizeYieldJobDef.jobName} due to fatal error: ${error.message}`

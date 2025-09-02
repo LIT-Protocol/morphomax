@@ -17,6 +17,7 @@ import { type TokenBalance } from './get-erc20-info';
 import { type MorphoVaultInfo } from './get-morpho-vaults';
 import { handleOperationExecution } from './handle-operation-execution';
 import { delegateeSigner } from './signer';
+import { normalizeError } from '../../../error';
 import { type AppData } from '../../jobVersion';
 
 type ApproveBase = {
@@ -32,7 +33,7 @@ type ApproveSuccess = ApproveBase & {
 };
 
 type ApproveError = ApproveBase & {
-  error: string;
+  error: Error;
   status: 'error';
 };
 
@@ -50,7 +51,7 @@ type DepositSuccess = DepositBase & {
 };
 
 type DepositError = DepositBase & {
-  error: string;
+  error: Error;
   status: 'error';
 };
 
@@ -58,7 +59,7 @@ type InnerDepositResult = DepositSuccess | DepositError;
 
 export type DepositResult = {
   approval: ApproveResult;
-  deposit: InnerDepositResult;
+  deposit?: InnerDepositResult;
 };
 
 interface EIP7702Params {
@@ -406,11 +407,30 @@ export async function depositVault({
     tokenDecimals: tokenBalance.decimals,
   };
 
-  const approveFunction = approveFunctionMap[app.version];
-  if (!approveFunction) {
-    throw new Error(`No approve function found for app version ${app.version}`);
+  let approveResult: ApproveResult;
+  try {
+    const approveFunction = approveFunctionMap[app.version];
+    if (!approveFunction) {
+      approveResult = {
+        error: normalizeError(`No approve function found for app version ${app.version}`),
+        status: 'error',
+      } as ApproveError;
+    } else {
+      approveResult = await approveFunction({ approveParams, pkpInfo, provider });
+    }
+  } catch (e) {
+    approveResult = {
+      error: normalizeError(e),
+      status: 'error',
+    } as ApproveError;
   }
-  const approveResult = await approveFunction({ approveParams, pkpInfo, provider });
+
+  // If approval failed then deposit will also fail, short circuit it
+  if (approveResult.status === 'error') {
+    return {
+      approval: approveResult,
+    };
+  }
 
   const depositParams: DepositParams = {
     alchemyGasSponsor,
@@ -418,16 +438,26 @@ export async function depositVault({
     alchemyGasSponsorPolicyId,
     amount: tokenBalance.balance,
     decimals: tokenBalance.decimals,
-    // bundlerStepsLimit: 1,
-    // skipRevertOnPermit: true,
     vaultAddress: vault.address as string,
   };
 
-  const depositFunction = depositFunctionMap[app.version];
-  if (!depositFunction) {
-    throw new Error(`No deposit function found for app version ${app.version}`);
+  let depositResult: InnerDepositResult;
+  try {
+    const depositFunction = depositFunctionMap[app.version];
+    if (!depositFunction) {
+      depositResult = {
+        error: normalizeError(`No deposit function found for app version ${app.version}`),
+        status: 'error',
+      } as DepositError;
+    } else {
+      depositResult = await depositFunction({ depositParams, pkpInfo, provider });
+    }
+  } catch (e) {
+    depositResult = {
+      error: normalizeError(e),
+      status: 'error',
+    } as DepositError;
   }
-  const depositResult = await depositFunction({ depositParams, pkpInfo, provider });
 
   return {
     approval: approveResult,
