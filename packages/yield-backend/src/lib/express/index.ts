@@ -22,9 +22,10 @@ const { handler, middleware } = createVincentUserMiddleware({
   userKey: 'user',
 });
 
+const VERCEL_DOMAINS = /https:\/\/.*-lit-protocol\.vercel\.app$/;
 const corsConfig = {
   optionsSuccessStatus: 204,
-  origin: IS_DEVELOPMENT ? true : CORS_ALLOWED_DOMAINS,
+  origin: IS_DEVELOPMENT ? true : [VERCEL_DOMAINS, ...CORS_ALLOWED_DOMAINS],
 };
 
 export const registerRoutes = (app: Express) => {
