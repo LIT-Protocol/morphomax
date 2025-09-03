@@ -1,3 +1,5 @@
 import type { AuthenticatedRequest } from '@lit-protocol/vincent-app-sdk/expressMiddleware';
 
-export type VincentAuthenticatedRequest = AuthenticatedRequest<'user'>;
+export const userKey = 'user' as const;
+
+export type VincentAuthenticatedRequest = AuthenticatedRequest<typeof userKey>;
