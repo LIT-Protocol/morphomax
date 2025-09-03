@@ -10,6 +10,7 @@ const variantStyles = {
   'secondary-outline': 'bg-transparent hover:opacity-80',
   destructive: 'text-white hover:opacity-90',
   'destructive-outline': 'bg-transparent hover:opacity-80',
+  ghost: 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800',
 };
 
 const sizeStyles = {
@@ -26,7 +27,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | 'secondary'
     | 'secondary-outline'
     | 'destructive'
-    | 'destructive-outline';
+    | 'destructive-outline'
+    | 'ghost';
   /** The size of the button */
   size?: 'sm' | 'md' | 'lg';
   /** The content to display inside the button */
@@ -64,6 +66,10 @@ const getVariantStyles = (variant: string) => {
       return {
         color: '#ef4444',
         borderColor: '#ef4444',
+      };
+    case 'ghost':
+      return {
+        borderColor: 'transparent',
       };
     default:
       return {};

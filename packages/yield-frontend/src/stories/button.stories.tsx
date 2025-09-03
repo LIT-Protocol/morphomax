@@ -17,39 +17,44 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
+export const Primary: Story = {
   args: {
-    variant: 'default',
+    variant: 'primary',
+    children: 'Button',
   },
 };
 
 export const Secondary: Story = {
   args: {
     variant: 'secondary',
+    children: 'Button',
   },
 };
 
-export const Link: Story = {
+export const Ghost: Story = {
   args: {
-    variant: 'link',
+    variant: 'ghost',
+    children: 'Button',
   },
 };
 
 export const Small: Story = {
   args: {
     size: 'sm',
+    children: 'Button',
   },
 };
 
 export const Large: Story = {
   args: {
     size: 'lg',
+    children: 'Button',
   },
 };
 
-export const Icon: Story = {
+export const Destructive: Story = {
   args: {
-    size: 'icon',
+    variant: 'destructive',
+    children: 'Button',
   },
-  render: (args) => <Button {...args}>⚠️</Button>,
 };
