@@ -20,6 +20,10 @@ export const theme = {
   mainCard: 'bg-white dark:bg-neutral-900',
   mainCardBorder: 'border-gray-200 dark:border-white/10',
   linkColor: 'text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300',
+  descriptionText: 'text-gray-600 dark:text-[#9C9C9C]',
+  primaryColor: 'text-[#FF4205]',
+  primaryBg: 'bg-[#FF4205]',
+  primaryBgLight: 'bg-orange-50/60 dark:bg-orange-900/25',
 };
 
 export type ThemeType = typeof theme;

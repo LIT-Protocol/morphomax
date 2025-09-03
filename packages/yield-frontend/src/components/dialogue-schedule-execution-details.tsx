@@ -145,7 +145,7 @@ export const DialogueScheduleExecutionDetails: React.FC<ScheduleDetailsDialogPro
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="secondary-outline">
           <PlusSquare />
         </Button>
       </DialogTrigger>

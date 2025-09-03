@@ -35,27 +35,61 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
       {/* Green APY Box */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="group relative overflow-hidden rounded-lg border border-green-200 dark:border-green-800 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 px-3 py-1.5 transition-all duration-200 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/30 dark:hover:to-emerald-900/30"
+        className="group relative overflow-hidden rounded-lg border transition-all duration-200 bg-[#E8F5E8] dark:bg-[#0A1F0A] hover:bg-[#D4EDD4] dark:hover:bg-[#0F2A0F]"
+        style={{
+          fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+          borderColor: '#228B22',
+          padding: 'clamp(0.25rem, 1vw, 0.375rem) clamp(0.5rem, 2vw, 0.75rem)',
+        }}
       >
-        <div className="relative flex items-center justify-center gap-2">
-          <span className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-widest">
+        <div className="relative flex items-center justify-center gap-1 sm:gap-2">
+          <span
+            className="text-xs font-medium uppercase tracking-widest hidden sm:inline"
+            style={{
+              color: '#228B22',
+              fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)',
+            }}
+          >
             Current Yield:
           </span>
-          <span className="text-sm font-semibold text-green-700 dark:text-green-300">
+          <span
+            className="text-xs font-medium uppercase tracking-widest sm:hidden"
+            style={{
+              color: '#228B22',
+              fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)',
+            }}
+          >
+            Yield:
+          </span>
+          <span
+            className="font-semibold"
+            style={{
+              color: '#228B22',
+              fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
+            }}
+          >
             {(totalApy * 100).toFixed(2)}%
           </span>
-          <span className="text-xs text-green-600 dark:text-green-400 font-normal">APY</span>
+          <span
+            className="text-xs font-normal"
+            style={{
+              color: '#228B22',
+              fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)',
+            }}
+          >
+            APY
+          </span>
           {isOpen ? (
-            <ChevronUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+            <ChevronUp className="h-3 w-3 flex-shrink-0" style={{ color: '#228B22' }} />
           ) : (
-            <ChevronDown className="h-3 w-3 text-green-600 dark:text-green-400" />
+            <ChevronDown className="h-3 w-3 flex-shrink-0" style={{ color: '#228B22' }} />
           )}
         </div>
       </button>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-80 z-50">
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 sm:w-80 z-50">
           {/* Arrow pointing up */}
           <div className="flex justify-center">
             <div className="w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-white dark:border-b-gray-800"></div>
@@ -64,17 +98,18 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
           {/* Dropdown content */}
           <div
             className={`${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl overflow-hidden`}
+            style={{
+              fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+            }}
           >
             <div className="p-4 space-y-4">
               {/* Current Strategy */}
               {strategyName && (
                 <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
-                  <span
-                    className={`text-xs font-medium ${theme.textMuted} uppercase tracking-wide`}
-                  >
+                  <span className={`text-xs font-medium ${theme.text} uppercase tracking-wide`}>
                     Current Strategy
                   </span>
-                  <span className={`text-xs font-medium ${theme.text}`}>{strategyName}</span>
+                  <span className={`text-xs font-medium ${theme.textMuted}`}>{strategyName}</span>
                 </div>
               )}
 
@@ -91,7 +126,8 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <svg
-                      className="w-4 h-auto text-orange-500"
+                      className="w-4 h-auto"
+                      style={{ color: '#FF4205' }}
                       width="40"
                       viewBox="0 0 311 228"
                       fill="none"
@@ -113,25 +149,21 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
                     </svg>
                     <span className={`text-sm font-medium ${theme.text}`}>Lit Protocol Points</span>
                   </div>
-                  <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                  <span className="text-sm font-semibold" style={{ color: '#FF4205' }}>
                     est: {(litProtocolBonus * 100).toFixed(0)}%
                   </span>
                 </div>
                 {/* Disclaimer directly below */}
                 <div
-                  className={`text-[10px] ${theme.textMuted} leading-tight mt-0.5 mb-3 text-center`}
+                  className="text-[11px] leading-tight mt-0.5 mb-3 text-center"
+                  style={{
+                    fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
+                    color: '#9C9C9C',
+                  }}
                 >
                   Bonus APY is based on an estimated $250M $LITKEY FDV. It applies to the first $20M
                   deposited into Vincent apps, with rewards capped at $20K per unique depositor and
                   distributed at a future snapshot.{' '}
-                  <a
-                    href="https://docs.heyvincent.ai/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline text-orange-600 dark:text-orange-400"
-                  >
-                    Learn more
-                  </a>
                 </div>
               </div>
 
@@ -140,7 +172,7 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
                 {/* Net APY */}
                 <div className="flex items-center justify-between">
                   <span className={`text-sm font-semibold ${theme.text}`}>Net APY</span>
-                  <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                  <span className="text-sm font-bold" style={{ color: '#228B22' }}>
                     {(totalApy * 100).toFixed(2)}%
                   </span>
                 </div>

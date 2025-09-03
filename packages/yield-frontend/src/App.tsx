@@ -7,7 +7,7 @@ import './App.css';
 import { JwtProvider, JwtContext } from '@/contexts/jwt';
 import { Home } from '@/pages/home';
 import { Login } from '@/pages/login';
-import { Background } from '@/components/shared/Background';
+import { Background } from '@/components/ui/background';
 
 function AppContent() {
   const { authInfo } = useContext(JwtContext);

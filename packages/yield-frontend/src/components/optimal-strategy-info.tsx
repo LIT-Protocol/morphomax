@@ -17,8 +17,8 @@ export const OptimalStrategyInfo: React.FC = () => {
 
   if (!topStrategy) {
     return (
-      <Box className="gap-1 m-4 p-0 text-sm bg-transparent">
-        <p className="text-gray-600">Loading...</p>
+      <Box className="gap-1 m-4 p-0 text-sm bg-transparent flex justify-center">
+        <p className="text-gray-600 text-center">Loading...</p>
       </Box>
     );
   }
