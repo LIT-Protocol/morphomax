@@ -8,6 +8,17 @@ const ERC20_ABI = [
   'function decimals() view returns (uint8)',
 ];
 
+// Create a singleton provider instance to reuse across all hook instances
+let providerInstance: ethers.providers.JsonRpcProvider | null = null;
+const getProvider = () => {
+  if (!providerInstance) {
+    providerInstance = new ethers.providers.JsonRpcProvider(
+      env.VITE_VINCENT_BASE_RPC || 'https://mainnet.base.org'
+    );
+  }
+  return providerInstance;
+};
+
 export function useFetchUsdcBalance(address: string) {
   const [balanceFormatted, setBalanceFormatted] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +35,7 @@ export function useFetchUsdcBalance(address: string) {
     setError(null);
 
     try {
-      const provider = new ethers.providers.JsonRpcProvider(env.VITE_VINCENT_BASE_RPC || 'https://mainnet.base.org');
+      const provider = getProvider();
       const usdcContract = new ethers.Contract(USDC_CONTRACT_ADDRESS, ERC20_ABI, provider);
       const [balance, decimals] = await Promise.all([
         usdcContract.balanceOf(address),
