@@ -40,7 +40,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose, walle
           {/* QR Code with Orange styling and logo */}
           <div className="text-center space-y-3">
             <div className="flex justify-center">
-              <div className="bg-orange-50/60 dark:bg-orange-900/25 p-3 rounded-lg">
+              <div className={`${theme.primaryBgLight} p-3 rounded-lg`}>
                 <div className="flex items-center justify-center relative w-32 h-32">
                   <QRCode
                     value={walletAddress}
@@ -66,10 +66,9 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose, walle
 
             {/* Address below QR code */}
             <p
-              className={`text-xs font-mono break-all px-2`}
+              className={`text-xs font-mono break-all px-2 ${theme.descriptionText}`}
               style={{
                 fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
-                color: '#9C9C9C',
               }}
             >
               {walletAddress}
@@ -98,10 +97,9 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose, walle
           </div>
 
           <p
-            className="text-center text-sm"
+            className={`text-center text-sm ${theme.descriptionText}`}
             style={{
               fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
-              color: '#9C9C9C',
             }}
           >
             Bridge from any chain using{' '}

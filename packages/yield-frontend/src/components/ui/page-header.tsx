@@ -67,10 +67,9 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       {description && (
         <div
-          className={`${styles.description} text-center mt-2`}
+          className={`${styles.description} text-center mt-2 text-gray-600 dark:text-[#9C9C9C]`}
           style={{
             fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
-            color: '#9C9C9C',
           }}
         >
           {description}
