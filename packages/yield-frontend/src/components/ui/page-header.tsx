@@ -1,4 +1,5 @@
 import React from 'react';
+import { theme } from '@/components/theme';
 
 interface PageHeaderProps {
   /** The main title text */
@@ -53,12 +54,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       {subtitle && (
         <div
-          className="uppercase tracking-widest text-center mt-1"
+          className={`uppercase tracking-widest text-center mt-1 ${theme.primaryColor}`}
           style={{
             fontSize: styles.subtitleSize,
             fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
             fontWeight: size === 'sm' ? 400 : 500,
-            color: '#FF4205',
           }}
         >
           {subtitle}
@@ -67,7 +67,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       {description && (
         <div
-          className={`${styles.description} text-center mt-2 text-gray-600 dark:text-[#9C9C9C]`}
+          className={`${styles.description} text-center mt-2 ${theme.descriptionText}`}
           style={{
             fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
           }}
