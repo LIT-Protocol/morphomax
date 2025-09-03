@@ -2028,6 +2028,12 @@ export type PaginatedVaultV2Factories = {
   pageInfo: Maybe<PageInfo>;
 };
 
+export type PaginatedVaultV2Transactions = {
+  __typename?: 'PaginatedVaultV2Transactions';
+  items: Maybe<Array<VaultV2Transaction>>;
+  pageInfo: Maybe<PageInfo>;
+};
+
 export type PaginatedVaultV2s = {
   __typename?: 'PaginatedVaultV2s';
   items: Maybe<Array<VaultV2>>;
@@ -2203,6 +2209,8 @@ export type Query = {
   vaultV2PositionByAddress: VaultV2Position;
   /** @deprecated WIP */
   vaultV2s: PaginatedVaultV2s;
+  /** @deprecated WIP */
+  vaultV2transactions: PaginatedVaultV2Transactions;
   vaults: PaginatedMetaMorphos;
 };
 
@@ -2470,6 +2478,14 @@ export type QueryVaultV2sArgs = {
   orderDirection: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
   where: InputMaybe<VaultV2sFilters>;
+};
+
+export type QueryVaultV2transactionsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<VaultV2TransactionOrderBy>;
+  orderDirection: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where: InputMaybe<VaultV2TransactionFilters>;
 };
 
 export type QueryVaultsArgs = {
@@ -3857,6 +3873,7 @@ export type VaultV2 = {
   __typename?: 'VaultV2';
   adapters: PaginatedVaultV2Adapters;
   address: Scalars['Address']['output'];
+  allocators: Array<VaultV2Allocator>;
   asset: Asset;
   /** @deprecated Currently always metaMorphoAdapter.metaMorpho.state.avgApy */
   avgApy: Maybe<Scalars['Float']['output']>;
@@ -3884,7 +3901,9 @@ export type VaultV2 = {
   performanceFeeRecipient: Scalars['Address']['output'];
   /** @deprecated Currently always metaMorphoAdapter.metaMorpho.state.rewards */
   rewards: Array<VaultStateReward>;
+  sentinels: Array<VaultV2Sentinel>;
   symbol: Scalars['String']['output'];
+  timelocks: Array<VaultV2Timelock>;
   /** @deprecated Currently always metaMorphoAdapter.position.assets */
   totalAssets: Maybe<Scalars['BigInt']['output']>;
   /** @deprecated Currently always metaMorphoAdapter.position.assetsUsd */
@@ -3930,6 +3949,25 @@ export type VaultV2AdaptersFilters = {
   chainId_in?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
+/** Vault V2 allocator */
+export type VaultV2Allocator = {
+  __typename?: 'VaultV2Allocator';
+  /** Allocator adress. */
+  allocator: Scalars['Address']['output'];
+  /** Allocator since block number */
+  blockNumber: Scalars['BigInt']['output'];
+  /** Allocator since timestamp */
+  timestamp: Scalars['BigInt']['output'];
+};
+
+/** Vault V2 deposit data */
+export type VaultV2DepositData = {
+  __typename?: 'VaultV2DepositData';
+  assets: Scalars['BigInt']['output'];
+  onBehalf: Scalars['String']['output'];
+  sender: Scalars['String']['output'];
+};
+
 export type VaultV2Factory = {
   __typename?: 'VaultV2Factory';
   address: Scalars['Address']['output'];
@@ -3958,6 +3996,105 @@ export type VaultV2Position = {
   shares: Scalars['BigInt']['output'];
   user: User;
   vault: VaultV2;
+};
+
+/** Vault V2 sentinel */
+export type VaultV2Sentinel = {
+  __typename?: 'VaultV2Sentinel';
+  /** Sentinel since block number */
+  blockNumber: Scalars['BigInt']['output'];
+  /** Sentinel adress. */
+  sentinel: Scalars['Address']['output'];
+  /** Sentinel since timestamp */
+  timestamp: Scalars['BigInt']['output'];
+};
+
+/** Vault V2 allocator */
+export type VaultV2Timelock = {
+  __typename?: 'VaultV2Timelock';
+  /** Last updated at block number */
+  blockNumber: Scalars['BigInt']['output'];
+  /** Duration of the timelock */
+  duration: Scalars['BigInt']['output'];
+  /** Targeted function */
+  functionName: Scalars['String']['output'];
+  /** Targeted selector */
+  selector: Scalars['HexString']['output'];
+  /** Last updated at timestamp */
+  timestamp: Scalars['BigInt']['output'];
+};
+
+/** Vault V2 transaction */
+export type VaultV2Transaction = {
+  __typename?: 'VaultV2Transaction';
+  blockNumber: Scalars['BigInt']['output'];
+  chain: Chain;
+  data: VaultV2TransactionData;
+  logIndex: Scalars['Int']['output'];
+  shares: Scalars['BigInt']['output'];
+  timestamp: Scalars['BigInt']['output'];
+  txHash: Scalars['HexString']['output'];
+  txIndex: Scalars['Int']['output'];
+  type: VaultV2TransactionType;
+  vault: VaultV2;
+};
+
+export type VaultV2TransactionData = VaultV2DepositData | VaultV2TransferData | VaultV2WithdrawData;
+
+/**
+ * Filtering options for transactions. AND operator is used for multiple filters, while OR operator
+ * is used for multiple values in the same filter.
+ */
+export type VaultV2TransactionFilters = {
+  /** Filter by greater than or equal to given amount of market assets, in underlying token units */
+  assets_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  /** Filter by lower than or equal to given amount of market assets, in underlying token units */
+  assets_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  /** Filter by chain id */
+  chainId_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  /** Filter by transaction hash */
+  hash?: InputMaybe<Scalars['String']['input']>;
+  /** Filter by greater than or equal to given amount of MetaMorpho vault shares */
+  shares_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  /** Filter by lower than or equal to given amount of MetaMorpho vault shares */
+  shares_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  /** Filter by greater than or equal to given timestamp */
+  timestamp_gte?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by lower than or equal to given timestamp */
+  timestamp_lte?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by transaction type */
+  type_in?: InputMaybe<Array<VaultV2TransactionType>>;
+  /** Filter by user address. Case insensitive. */
+  userAddress_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** Filter by MetaMorpho vault address */
+  vaultAddress_in?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export enum VaultV2TransactionOrderBy {
+  Shares = 'Shares',
+  Time = 'Time',
+}
+
+export enum VaultV2TransactionType {
+  Deposit = 'Deposit',
+  Transfer = 'Transfer',
+  Withdraw = 'Withdraw',
+}
+
+/** Vault V2 transfer data */
+export type VaultV2TransferData = {
+  __typename?: 'VaultV2TransferData';
+  from: Scalars['String']['output'];
+  to: Scalars['String']['output'];
+};
+
+/** Vault V2 withdraw data */
+export type VaultV2WithdrawData = {
+  __typename?: 'VaultV2WithdrawData';
+  assets: Scalars['BigInt']['output'];
+  onBehalf: Scalars['String']['output'];
+  receiver: Scalars['String']['output'];
+  sender: Scalars['String']['output'];
 };
 
 export type VaultV2sFilters = {

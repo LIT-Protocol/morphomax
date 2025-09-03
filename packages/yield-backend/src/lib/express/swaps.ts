@@ -1,12 +1,12 @@
 import { Response } from 'express';
 
 import { VincentAuthenticatedRequest } from './types';
-import { MorphoSwap } from '../mongo/models/MorphoSwap';
+import { YieldSwap } from '../mongo/models/YieldSwap';
 
 export const handleListSwapsRoute = async (req: VincentAuthenticatedRequest, res: Response) => {
   const walletAddress = req.user.decodedJWT.payload.pkpInfo.ethAddress;
 
-  const swaps = await MorphoSwap.find({ walletAddress })
+  const swaps = await YieldSwap.find({ walletAddress })
     .sort({
       purchasedAt: -1,
     })

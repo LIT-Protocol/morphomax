@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers';
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const decimalBigInt = (extra: Partial<Record<string, any>> = {}) => ({
   get(value: string) {
@@ -19,7 +19,7 @@ const decimalBigInt = (extra: Partial<Record<string, any>> = {}) => ({
   ...extra,
 });
 
-const ApprovalBaseSchema = new Schema(
+const approvalBaseSchema = new Schema(
   {
     amount: { required: true, type: String },
     status: { enum: ['success', 'error'], required: true, type: String },
@@ -28,7 +28,7 @@ const ApprovalBaseSchema = new Schema(
   { _id: false, discriminatorKey: 'status', strict: true }
 );
 
-const ApprovalSuccessSchema = new Schema(
+const approvalSuccessSchema = new Schema(
   {
     spenderAddress: { required: true, type: String },
     transaction: { type: String }, // tx won't be sent if current allowance is enough
@@ -37,14 +37,14 @@ const ApprovalSuccessSchema = new Schema(
   { _id: false, strict: true }
 );
 
-const ApprovalErrorSchema = new Schema(
+const approvalErrorSchema = new Schema(
   {
     error: { required: true, type: String },
   },
   { _id: false, strict: true }
 );
 
-const DepositBaseSchema = new Schema(
+const depositBaseSchema = new Schema(
   {
     amount: { required: true, type: String },
     status: { enum: ['success', 'error'], required: true, type: String },
@@ -53,7 +53,7 @@ const DepositBaseSchema = new Schema(
   { _id: false, discriminatorKey: 'status', strict: true }
 );
 
-const DepositSuccessSchema = new Schema(
+const depositSuccessSchema = new Schema(
   {
     transaction: { required: true, type: String },
     userop: { type: String },
@@ -61,14 +61,14 @@ const DepositSuccessSchema = new Schema(
   { _id: false, strict: true }
 );
 
-const DepositErrorSchema = new Schema(
+const depositErrorSchema = new Schema(
   {
     error: { required: true, type: String },
   },
   { _id: false, strict: true }
 );
 
-const RedeemBaseSchema = new Schema(
+const redeemBaseSchema = new Schema(
   {
     amount: { required: true, type: String },
     status: { enum: ['success', 'error'], required: true, type: String },
@@ -77,7 +77,7 @@ const RedeemBaseSchema = new Schema(
   { _id: false, discriminatorKey: 'status', strict: true }
 );
 
-const RedeemSuccessSchema = new Schema(
+const redeemSuccessSchema = new Schema(
   {
     transaction: { required: true, type: String },
     userop: { type: String },
@@ -85,7 +85,7 @@ const RedeemSuccessSchema = new Schema(
   { _id: false, strict: true }
 );
 
-const RedeemErrorSchema = new Schema(
+const redeemErrorSchema = new Schema(
   {
     error: { required: true, type: String },
   },
@@ -94,17 +94,24 @@ const RedeemErrorSchema = new Schema(
 
 const depositSchema = new Schema(
   {
-    approval: { required: true, type: ApprovalBaseSchema },
-    deposit: { required: true, type: DepositBaseSchema },
+    approval: { required: true, type: approvalBaseSchema },
+    deposit: { required: true, type: depositBaseSchema },
   },
   { _id: false }
 );
-depositSchema.path('approval').discriminator('success', ApprovalSuccessSchema);
-depositSchema.path('approval').discriminator('error', ApprovalErrorSchema);
-depositSchema.path('deposit').discriminator('success', DepositSuccessSchema);
-depositSchema.path('deposit').discriminator('error', DepositErrorSchema);
+const approvalSubdocument = depositSchema.path(
+  'approval'
+) as unknown as mongoose.Schema.Types.Subdocument<any>;
+approvalSubdocument.discriminator('success', approvalSuccessSchema);
+approvalSubdocument.discriminator('error', approvalErrorSchema);
 
-const redeemsArrayItem = RedeemBaseSchema;
+const depositSubdocument = depositSchema.path(
+  'deposit'
+) as unknown as mongoose.Schema.Types.Subdocument<any>;
+depositSubdocument.discriminator('success', depositSuccessSchema);
+depositSubdocument.discriminator('error', depositErrorSchema);
+
+const redeemsArrayItem = redeemBaseSchema;
 
 const vaultPositionsSchema = new Schema(
   {
@@ -217,7 +224,7 @@ const tokenBalanceSchema = new Schema(
 );
 
 // Swap operations are all arrays to be prepared to support multiple tokens and chains
-const morphoSwapSchemaDefinition = {
+const yieldSwapSchemaDefinition = {
   deposits: { default: [], required: true, type: [depositSchema] },
   pkpInfo: {
     required: true,
@@ -239,12 +246,15 @@ const morphoSwapSchemaDefinition = {
   userTokenBalances: { default: [], required: true, type: [tokenBalanceSchema] },
 } as const;
 
-const MorphoSwapSchema = new Schema(morphoSwapSchemaDefinition, { timestamps: true });
+const yieldSwapSchema = new Schema(yieldSwapSchemaDefinition, { timestamps: true });
 
-MorphoSwapSchema.path('redeems').discriminator('success', RedeemSuccessSchema);
-MorphoSwapSchema.path('redeems').discriminator('error', RedeemErrorSchema);
+const redeemsSubdocument = yieldSwapSchema.path(
+  'redeems'
+) as unknown as mongoose.Schema.Types.DocumentArray;
+redeemsSubdocument.discriminator('success', redeemSuccessSchema);
+redeemsSubdocument.discriminator('error', redeemErrorSchema);
 
 // Create compound indices for common query patterns
-MorphoSwapSchema.index({ createdAt: 1, scheduleId: 1 });
+yieldSwapSchema.index({ createdAt: 1, scheduleId: 1 });
 
-export const MorphoSwap = model('MorphoSwap', MorphoSwapSchema);
+export const YieldSwap = model('MorphoSwap', yieldSwapSchema); // TODO https://linear.app/litprotocol/issue/DREL-996/heroku-vercel-db-migration

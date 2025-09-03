@@ -17,6 +17,9 @@
     "build-storybook": "storybook build",
     "clean": "pnpm exec rm -Rf node_modules dist"
   },
+  "peerDependencies": {
+    "ethers": "^5.8.0"
+  },
   "dependencies": {
     "@lit-protocol/auth-helpers": "7.2.0",
     "@lit-protocol/constants": "7.2.0",
@@ -68,6 +71,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "eslint-plugin-storybook": "^0.11.6",
+    "ethers": "^5.8.0",
     "globals": "^15.15.0",
     "playwright": "^1.51.1",
     "storybook": "^8.6.7",

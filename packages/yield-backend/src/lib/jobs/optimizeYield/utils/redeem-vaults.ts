@@ -104,7 +104,7 @@ async function redeemVault6({
     pkpInfo,
     provider,
     isSponsored: fullRedeemParams.alchemyGasSponsor,
-    operationHash: morphoRedeemExecutionResult.txHash,
+    operationHash: morphoRedeemExecutionResult.txHash as `0x${string}`,
   });
 
   return {
@@ -168,7 +168,7 @@ async function redeemVault27({
     pkpInfo,
     provider,
     isSponsored: fullRedeemParams.alchemyGasSponsor,
-    operationHash: morphoRedeemExecutionResult.txHash,
+    operationHash: morphoRedeemExecutionResult.txHash as `0x${string}`,
   });
 
   return {

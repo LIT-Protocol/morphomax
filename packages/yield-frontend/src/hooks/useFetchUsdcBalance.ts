@@ -43,8 +43,8 @@ export function useFetchUsdcBalance(address: string) {
       ]);
       const formatted = ethers.utils.formatUnits(balance, decimals);
       setBalanceFormatted(parseFloat(formatted).toFixed(2));
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch balance');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to fetch balance');
       setBalanceFormatted('0.00');
     } finally {
       setIsLoading(false);

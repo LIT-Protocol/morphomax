@@ -4,8 +4,8 @@ import { type VincentJWTAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
 import { ScheduleIdentitySchema, ScheduleParamsSchema } from './schema';
 import { VincentAuthenticatedRequest } from './types';
-import * as jobManager from '../jobs/morphoMaxJobManager';
-import { MorphoSwap } from '../mongo/models/MorphoSwap';
+import * as jobManager from '../jobs/yieldJobManager';
+import { YieldSwap } from '../mongo/models/YieldSwap';
 
 const { cancelJob, createJob, listJobsByWalletAddress } = jobManager;
 
@@ -50,7 +50,7 @@ export const handleListScheduleSwapsRoute = async (
   } = req.user.decodedJWT.payload;
   const { limit = 10, skip = 0 } = req.query;
 
-  const swaps = await MorphoSwap.find({ pkpInfo: { ethAddress } })
+  const swaps = await YieldSwap.find({ pkpInfo: { ethAddress } })
     .sort({
       createdAt: -1,
     })

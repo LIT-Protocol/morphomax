@@ -1904,6 +1904,11 @@ type PaginatedVaultV2s {
   pageInfo: PageInfo
 }
 
+type PaginatedVaultV2Transactions {
+  items: [VaultV2Transaction!]
+  pageInfo: PageInfo
+}
+
 """Public allocator"""
 type PublicAllocator {
   id: ID!
@@ -2235,6 +2240,16 @@ type Query {
     skip: Int = 0
   ): _PaginatedCrossVersionVault! @deprecated(reason: "WIP")
   vaultV2PositionByAddress(userAddress: String!, vaultAddress: String!, chainId: Int!): VaultV2Position! @deprecated(reason: "WIP")
+  vaultV2transactions(
+    """Number of items requested"""
+    first: Int = 100
+
+    """Number of items skipped"""
+    skip: Int = 0
+    orderBy: VaultV2TransactionOrderBy = Time
+    orderDirection: OrderDirection
+    where: VaultV2TransactionFilters
+  ): PaginatedVaultV2Transactions! @deprecated(reason: "WIP")
 }
 
 """ReallocateSupply event data"""
@@ -3628,6 +3643,9 @@ type VaultV2 {
   performanceFeeRecipient: Address!
   managementFee: Float!
   managementFeeRecipient: Address!
+  allocators: [VaultV2Allocator!]!
+  sentinels: [VaultV2Sentinel!]!
+  timelocks: [VaultV2Timelock!]!
 }
 
 interface VaultV2Adapter {
@@ -3666,6 +3684,25 @@ enum VaultV2AdapterType {
   MetaMorpho
 }
 
+"""Vault V2 allocator"""
+type VaultV2Allocator {
+  """Allocator adress."""
+  allocator: Address!
+
+  """Allocator since block number"""
+  blockNumber: BigInt!
+
+  """Allocator since timestamp"""
+  timestamp: BigInt!
+}
+
+"""Vault V2 deposit data"""
+type VaultV2DepositData {
+  assets: BigInt!
+  sender: String!
+  onBehalf: String!
+}
+
 type VaultV2Factory {
   id: ID!
   chain: Chain!
@@ -3694,6 +3731,18 @@ type VaultV2Position {
   shares: BigInt!
 }
 
+"""Vault V2 sentinel"""
+type VaultV2Sentinel {
+  """Sentinel adress."""
+  sentinel: Address!
+
+  """Sentinel since block number"""
+  blockNumber: BigInt!
+
+  """Sentinel since timestamp"""
+  timestamp: BigInt!
+}
+
 input VaultV2sFilters {
   """Filter by chain id"""
   chainId_in: [Int!]
@@ -3701,6 +3750,112 @@ input VaultV2sFilters {
   """Filter by vault v2 address"""
   address_in: [String!]
   whitelisted: Boolean
+}
+
+"""Vault V2 allocator"""
+type VaultV2Timelock {
+  """Targeted selector"""
+  selector: HexString!
+
+  """Targeted function"""
+  functionName: String!
+
+  """Duration of the timelock"""
+  duration: BigInt!
+
+  """Last updated at block number"""
+  blockNumber: BigInt!
+
+  """Last updated at timestamp"""
+  timestamp: BigInt!
+}
+
+"""Vault V2 transaction"""
+type VaultV2Transaction {
+  chain: Chain!
+  txHash: HexString!
+  vault: VaultV2!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  shares: BigInt!
+  txIndex: Int!
+  logIndex: Int!
+  type: VaultV2TransactionType!
+  data: VaultV2TransactionData!
+}
+
+union VaultV2TransactionData = VaultV2DepositData | VaultV2WithdrawData | VaultV2TransferData
+
+"""
+Filtering options for transactions. AND operator is used for multiple filters,
+while OR operator is used for multiple values in the same filter.
+"""
+input VaultV2TransactionFilters {
+  """Filter by MetaMorpho vault address"""
+  vaultAddress_in: [String!]
+
+  """Filter by user address. Case insensitive."""
+  userAddress_in: [String!]
+
+  """Filter by transaction type"""
+  type_in: [VaultV2TransactionType!]
+
+  """Filter by transaction hash"""
+  hash: String
+
+  """Filter by greater than or equal to given timestamp"""
+  timestamp_gte: Int
+
+  """Filter by lower than or equal to given timestamp"""
+  timestamp_lte: Int
+
+  """Filter by chain id"""
+  chainId_in: [Int!]
+
+  """
+  Filter by greater than or equal to given amount of MetaMorpho vault shares
+  """
+  shares_gte: BigInt
+
+  """
+  Filter by lower than or equal to given amount of MetaMorpho vault shares
+  """
+  shares_lte: BigInt
+
+  """
+  Filter by greater than or equal to given amount of market assets, in underlying token units
+  """
+  assets_gte: BigInt
+
+  """
+  Filter by lower than or equal to given amount of market assets, in underlying token units
+  """
+  assets_lte: BigInt
+}
+
+enum VaultV2TransactionOrderBy {
+  Time
+  Shares
+}
+
+enum VaultV2TransactionType {
+  Transfer
+  Deposit
+  Withdraw
+}
+
+"""Vault V2 transfer data"""
+type VaultV2TransferData {
+  from: String!
+  to: String!
+}
+
+"""Vault V2 withdraw data"""
+type VaultV2WithdrawData {
+  assets: BigInt!
+  sender: String!
+  receiver: String!
+  onBehalf: String!
 }
 
 enum VaultVersion {

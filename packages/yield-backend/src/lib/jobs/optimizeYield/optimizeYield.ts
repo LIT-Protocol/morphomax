@@ -20,7 +20,7 @@ import {
 } from './utils';
 import { type MorphoVaultInfo } from './utils/get-morpho-vaults';
 import { env } from '../../env';
-import { MorphoSwap } from '../../mongo/models/MorphoSwap';
+import { YieldSwap } from '../../mongo/models/YieldSwap';
 
 export type JobType = Job<JobParams>;
 export type JobParams = {
@@ -54,7 +54,7 @@ function getVaultsToOptimize(
   return suboptimalVaults;
 }
 
-export async function optimizeMorphoYield(job: JobType): Promise<void> {
+export async function optimizeYield(job: JobType): Promise<void> {
   try {
     const {
       _id,
@@ -62,7 +62,7 @@ export async function optimizeMorphoYield(job: JobType): Promise<void> {
     } = job.attrs;
     let { app } = job.attrs.data;
 
-    consola.log('Starting Morpho optimization job...', {
+    consola.log('Starting yield optimization job...', {
       _id,
       pkpInfo,
     });
@@ -75,7 +75,7 @@ export async function optimizeMorphoYield(job: JobType): Promise<void> {
     ]);
 
     consola.debug('Got user positions:', userPositions);
-    consola.debug('Got top USDC vault:', topVault);
+    consola.debug('Got top yielding vault:', topVault);
     consola.debug('Got user permitted app version:', userPermittedAppVersion);
 
     if (!userPermittedAppVersion) {
@@ -156,7 +156,7 @@ export async function optimizeMorphoYield(job: JobType): Promise<void> {
         2
       )
     );
-    const morphoSwap = new MorphoSwap({
+    const morphoSwap = new YieldSwap({
       deposits,
       pkpInfo,
       redeems,
