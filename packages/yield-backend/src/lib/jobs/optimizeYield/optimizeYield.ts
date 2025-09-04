@@ -56,24 +56,12 @@ function getVaultsToOptimize(
   return suboptimalVaults;
 }
 
-export async function optimizeYield(job: JobType): Promise<void> {
+export async function optimizeYield(job: JobType, sentryScope: Sentry.Scope): Promise<void> {
   const {
     _id,
-    data: { jobVersion, pkpInfo },
+    data: { pkpInfo },
   } = job.attrs;
   let { app } = job.attrs.data;
-
-  const sentryHints = {
-    tags: {
-      'app.id': app.id,
-      'app.version': app.version,
-      'job.id': String(_id),
-      'job.version': jobVersion,
-    },
-    user: {
-      ethAddress: pkpInfo.ethAddress,
-    },
-  };
 
   consola.log('Starting yield optimization job...', {
     _id,
@@ -103,7 +91,7 @@ export async function optimizeYield(job: JobType): Promise<void> {
 
     // Fix old jobs that didn't have app data
     if (!app?.version) {
-      Sentry.addBreadcrumb({
+      sentryScope.addBreadcrumb({
         data: {
           app,
           userPermittedAppVersion,
@@ -123,7 +111,7 @@ export async function optimizeYield(job: JobType): Promise<void> {
     const jobVersionToRun = assertJobVersion(app.version, userPermittedAppVersion);
     if (jobVersionToRun !== app.version) {
       // User updated the permitted app version after creating the job, so we need to update it
-      Sentry.addBreadcrumb({
+      sentryScope.addBreadcrumb({
         data: {
           app,
           jobVersionToRun,
@@ -151,9 +139,8 @@ export async function optimizeYield(job: JobType): Promise<void> {
       redeems = allRedeems.filter((redeem) => {
         if (redeem.status !== 'success') {
           const { error, ...rest } = redeem;
-          Sentry.captureException(error, {
-            ...sentryHints,
-            extra: {
+          sentryScope.captureException(error, {
+            data: {
               redeem: { ...rest },
             },
           });
@@ -172,7 +159,7 @@ export async function optimizeYield(job: JobType): Promise<void> {
     });
     const { balance, decimals } = tokenBalance;
     consola.debug('User USDC balance:', ethers.utils.formatUnits(balance, decimals));
-    Sentry.addBreadcrumb({
+    sentryScope.addBreadcrumb({
       data: {
         tokenBalance,
       },
@@ -196,27 +183,24 @@ export async function optimizeYield(job: JobType): Promise<void> {
       } else if (depositResult.approval.status === 'error') {
         // What failed is the approval
         const { error, ...rest } = depositResult.approval;
-        Sentry.captureException(error, {
-          ...sentryHints,
-          extra: {
+        sentryScope.captureException(error, {
+          data: {
             approval: { ...rest },
           },
         });
       } else if (depositResult.deposit?.status === 'error') {
         // What failed is the deposit
         const { error, ...rest } = depositResult.deposit;
-        Sentry.captureException(error, {
-          ...sentryHints,
-          extra: {
+        sentryScope.captureException(error, {
+          data: {
             approval: depositResult.approval,
             deposit: { ...rest },
           },
         });
       } else {
         // WUT? Something else failed...
-        Sentry.captureException(new Error('Unknown deposit error'), {
-          ...sentryHints,
-          extra: {
+        sentryScope.captureException(new Error('Unknown deposit error'), {
+          data: {
             approval: depositResult.approval,
             deposit: depositResult.deposit,
           },
@@ -257,7 +241,7 @@ export async function optimizeYield(job: JobType): Promise<void> {
     // so this is our chance to log the job failure details using Consola before we throw the error
     // to Agenda, which will write the failure reason to the Agenda job document in Mongo
     const err = normalizeError(e);
-    Sentry.captureException(err, sentryHints);
+    sentryScope.captureException(err);
     consola.error(err.message, err.stack);
     throw e;
   }

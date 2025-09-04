@@ -26,7 +26,7 @@ export async function startWorker() {
       scope.setTag('job.id', String(_id));
 
       try {
-        await optimizeYieldJobDef.processJob(job);
+        await optimizeYieldJobDef.processJob(job, scope);
       } catch (err) {
         Sentry.captureException(err);
         const error = err as Error;
