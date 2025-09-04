@@ -3,6 +3,7 @@ import cors from 'cors';
 import express, { Express, NextFunction, Response } from 'express';
 
 import { createVincentUserMiddleware } from '@lit-protocol/vincent-app-sdk/expressMiddleware';
+import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
 import {
   handleCreateScheduleRoute,
@@ -31,9 +32,13 @@ const corsConfig = {
 
 const setSentryUserMiddleware = handler(
   (req: VincentAuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (!isAppUser(req.user.decodedJWT)) {
+      throw new Error('Vincent JWT is not an app user');
+    }
+
     Sentry.setUser({
-      app: req.user.decodedJWT.payload.app,
-      ethAddress: req.user.decodedJWT.payload.pkpInfo.ethAddress,
+      app: getAppInfo(req.user.decodedJWT),
+      ethAddress: getPKPInfo(req.user.decodedJWT).ethAddress,
     });
     next();
   }
