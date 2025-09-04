@@ -125,7 +125,7 @@ export const FundsDeployed: React.FC<FundsDeployedProps> = ({
             fontSize: 'clamp(1rem, 3vw, 1.25rem)',
           }}
         >
-          ${deployedAmount} USD
+          ${deployedAmount} USDC
         </div>
       </div>
 

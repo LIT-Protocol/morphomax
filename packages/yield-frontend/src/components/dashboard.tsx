@@ -203,8 +203,8 @@ export const Dashboard: React.FC = () => {
                 lastFinishedAt,
                 failedAt,
                 _id: uniqueKey,
-                investedAmountUsd,
-                uninvestedAmountUsd,
+                investedAmountUsdc,
+                uninvestedAmountUsdc,
               } = schedule;
 
               if (disabled) return null;
@@ -217,7 +217,7 @@ export const Dashboard: React.FC = () => {
                 <div key={uniqueKey} className="space-y-3">
                   <FundsDeployed
                     deployedAmount={(
-                      parseFloat(uninvestedAmountUsd) + parseFloat(investedAmountUsd)
+                      parseFloat(uninvestedAmountUsdc) + parseFloat(investedAmountUsdc)
                     ).toFixed(2)}
                     status={status}
                     walletAddress={authInfo?.pkp.ethAddress || ''}

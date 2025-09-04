@@ -113,56 +113,11 @@ depositSubdocument.discriminator('error', depositErrorSchema);
 
 const redeemsArrayItem = redeemBaseSchema;
 
-const vaultPositionsSchema = new Schema(
-  {
-    __typename: { required: true, type: String },
-    state: {
-      __typename: { required: true, type: String },
-      assets: decimalBigInt(),
-      assetsUsd: { required: true, type: Number },
-      id: { required: true, type: String },
-      pnl: decimalBigInt(),
-      pnlUsd: { required: true, type: Number },
-      roe: { required: true, type: Number },
-      roeUsd: { required: true, type: Number },
-      shares: decimalBigInt(),
-      timestamp: decimalBigInt(),
-    },
-    vault: {
-      __typename: { required: true, type: String },
-      address: { required: true, type: String },
-      asset: {
-        __typename: { required: true, type: String },
-        address: { required: true, type: String },
-        decimals: { required: true, type: Number },
-        name: { required: true, type: String },
-        symbol: { required: true, type: String },
-      },
-      id: { required: true, type: String },
-      name: { required: true, type: String },
-      state: {
-        __typename: { required: true, type: String },
-        apy: { required: true, type: Number },
-        avgApy: { required: true, type: Number },
-        avgNetApy: { required: true, type: Number },
-        netApy: { required: true, type: Number },
-      },
-      symbol: { required: true, type: String },
-      whitelisted: { required: true, type: Boolean },
-    },
-  },
-  {
-    _id: false,
-  }
-);
 const userPositionsSchema = new Schema(
   {
-    __typename: { required: true, type: String },
-    id: { required: true, type: String },
-    user: {
-      __typename: { required: true, type: String },
-      vaultPositions: { default: [], required: true, type: [vaultPositionsSchema] },
-    },
+    address: { required: true, type: String },
+    assets: decimalBigInt(),
+    shares: decimalBigInt(),
   },
   {
     _id: false,
