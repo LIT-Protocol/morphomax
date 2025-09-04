@@ -57,23 +57,30 @@ function getVaultsToOptimize(
 }
 
 export async function optimizeYield(job: JobType): Promise<void> {
-  try {
-    const {
-      _id,
-      data: { jobVersion, pkpInfo },
-    } = job.attrs;
-    let { app } = job.attrs.data;
+  const {
+    _id,
+    data: { jobVersion, pkpInfo },
+  } = job.attrs;
+  let { app } = job.attrs.data;
 
-    Sentry.setUser({
-      app,
-      jobVersion,
+  const sentryHints = {
+    tags: {
+      'app.id': app.id,
+      'app.version': app.version,
+      'job.id': String(_id),
+      'job.version': jobVersion,
+    },
+    user: {
       ethAddress: pkpInfo.ethAddress,
-    });
-    consola.log('Starting yield optimization job...', {
-      _id,
-      pkpInfo,
-    });
+    },
+  };
 
+  consola.log('Starting yield optimization job...', {
+    _id,
+    pkpInfo,
+  });
+
+  try {
     consola.debug('Fetching current top strategy, user vault positions and user delegations...');
     const [userPositions, topVault, userPermittedAppVersion] = await Promise.all<any>([
       getUserPositions({ pkpInfo, chainId: baseProvider.network.chainId }),
@@ -145,6 +152,7 @@ export async function optimizeYield(job: JobType): Promise<void> {
         if (redeem.status !== 'success') {
           const { error, ...rest } = redeem;
           Sentry.captureException(error, {
+            ...sentryHints,
             extra: {
               redeem: { ...rest },
             },
@@ -189,6 +197,7 @@ export async function optimizeYield(job: JobType): Promise<void> {
         // What failed is the approval
         const { error, ...rest } = depositResult.approval;
         Sentry.captureException(error, {
+          ...sentryHints,
           extra: {
             approval: { ...rest },
           },
@@ -197,6 +206,7 @@ export async function optimizeYield(job: JobType): Promise<void> {
         // What failed is the deposit
         const { error, ...rest } = depositResult.deposit;
         Sentry.captureException(error, {
+          ...sentryHints,
           extra: {
             approval: depositResult.approval,
             deposit: { ...rest },
@@ -205,6 +215,7 @@ export async function optimizeYield(job: JobType): Promise<void> {
       } else {
         // WUT? Something else failed...
         Sentry.captureException(new Error('Unknown deposit error'), {
+          ...sentryHints,
           extra: {
             approval: depositResult.approval,
             deposit: depositResult.deposit,
@@ -246,7 +257,7 @@ export async function optimizeYield(job: JobType): Promise<void> {
     // so this is our chance to log the job failure details using Consola before we throw the error
     // to Agenda, which will write the failure reason to the Agenda job document in Mongo
     const err = normalizeError(e);
-    Sentry.captureException(err);
+    Sentry.captureException(err, sentryHints);
     consola.error(err.message, err.stack);
     throw e;
   }
