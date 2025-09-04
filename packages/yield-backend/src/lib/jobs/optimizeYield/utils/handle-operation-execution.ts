@@ -4,13 +4,18 @@ import { IRelayPKP } from '@lit-protocol/types';
 
 import { waitForTransaction } from './wait-for-transaction';
 import { waitForUserOperation } from './wait-for-user-operation';
+import { env } from '../../../env';
+
+const { DEFAULT_TX_CONFIRMATIONS } = env;
 
 export async function handleOperationExecution({
+  confirmations = DEFAULT_TX_CONFIRMATIONS,
   isSponsored,
   operationHash,
   pkpInfo,
   provider,
 }: {
+  confirmations?: number;
   isSponsored: boolean;
   operationHash: `0x${string}`;
   pkpInfo: IRelayPKP;
@@ -27,7 +32,7 @@ export async function handleOperationExecution({
       useropHash,
       pkpPublicKey: pkpInfo.publicKey,
     });
-    await waitForTransaction({ provider, transactionHash: txHash });
+    await waitForTransaction({ confirmations, provider, transactionHash: txHash });
   }
 
   return { txHash, useropHash };

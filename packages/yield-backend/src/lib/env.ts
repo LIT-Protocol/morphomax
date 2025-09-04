@@ -26,6 +26,7 @@ export const env = createEnv({
     ALLOWED_AUDIENCE: z.string().url(),
     BASE_RPC_URL: z.string().url().optional(),
     CORS_ALLOWED_DOMAINS: z.string().transform((val) => val.split(',')),
+    DEFAULT_TX_CONFIRMATIONS: z.coerce.number().default(6),
     IS_DEVELOPMENT: BooleanOrBooleanStringSchema,
     MINIMUM_USDC_BALANCE: z.coerce.number(),
     MINIMUM_VAULT_TOTAL_ASSETS_USD: z.coerce.number().default(1_000_000),
