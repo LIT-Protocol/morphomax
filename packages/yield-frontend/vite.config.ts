@@ -19,9 +19,10 @@ export default defineConfig(({ command }) => {
       ...(sentryEnabled
         ? [
             sentryVitePlugin({
+              applicationKey: 'vincent-yield-frontend',
+              authToken: process.env.SENTRY_AUTH_TOKEN,
               org: 'lit-protocol-lw',
               project: 'vincent-yield-frontend',
-              authToken: process.env.SENTRY_AUTH_TOKEN,
             }),
           ]
         : []),
