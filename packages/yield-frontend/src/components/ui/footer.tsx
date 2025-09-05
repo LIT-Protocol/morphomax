@@ -84,7 +84,7 @@ export const Footer: React.FC = () => {
           }}
         >
           <HelpCircle className="w-3 h-3" style={{ marginTop: '-2px' }} />
-          <span>Help</span>
+          <span>Support</span>
         </a>
       </div>
     </div>
