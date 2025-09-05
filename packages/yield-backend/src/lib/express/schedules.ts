@@ -39,8 +39,11 @@ export const handleCreateScheduleRoute = async (
     const { app, pkpInfo } = getAppAndPKPInfoFromJWT(req);
 
     const scheduleParams = ScheduleParamsSchema.parse({
-      app,
       pkpInfo,
+      app: {
+        id: app.appId,
+        version: app.version,
+      },
     });
 
     const schedule = await createJob({ ...scheduleParams }, { interval: 'weekly' });
@@ -81,8 +84,11 @@ export const handleDeleteScheduleRoute = async (
     const { app, pkpInfo } = getAppAndPKPInfoFromJWT(req);
 
     const scheduleParams = ScheduleParamsSchema.parse({
-      app,
       pkpInfo,
+      app: {
+        id: app.appId,
+        version: app.version,
+      },
     });
     const { scheduleId } = ScheduleIdentitySchema.parse(req.params);
 
