@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { ethers } from 'ethers';
 
 import '../../sentry';
@@ -25,7 +26,7 @@ async function main() {
 
   // Job run
   const jobs = await findJobs({ walletAddress, mustExist: true });
-  await Promise.all(jobs.map((j) => optimizeYield(j)));
+  await Promise.all(jobs.map((j) => Sentry.withIsolationScope((s) => optimizeYield(j, s))));
 
   // Teardown
   await Promise.all([agenda.stop(), mongo.close(), disconnectVincentAbilityClients()]);
