@@ -12,9 +12,9 @@ import {
 import { getVincentAbilityClient } from '@lit-protocol/vincent-app-sdk/abilityClient';
 
 import { alchemyGasSponsor, alchemyGasSponsorApiKey, alchemyGasSponsorPolicyId } from './alchemy';
-import { type UserVaultPositionItem } from '../morphoLoader';
 import { handleOperationExecution } from './handle-operation-execution';
 import { delegateeSigner } from './signer';
+import { type UserVaultPosition } from '../../../balanceMonitor';
 import { normalizeError } from '../../../error';
 import { AppData } from '../../jobVersion';
 
@@ -195,32 +195,31 @@ export async function redeemVaults({
   app: AppData;
   pkpInfo: IRelayPKP;
   provider: ethers.providers.StaticJsonRpcProvider;
-  userVaultPositions: UserVaultPositionItem[];
+  userVaultPositions: UserVaultPosition[];
 }): Promise<ReedemResult[]> {
   const redeemResults: ReedemResult[] = [];
   /* eslint-disable no-await-in-loop */
   // We have to trigger one redeem per vault and do it in sequence to avoid messing up the nonce
   // In most cases, we will only have one vault to redeem. The only cases where we will have multiple are when users transfer other vault tokens to their wallet
-  for (const vaultPosition of userVaultPositions) {
-    if (vaultPosition.state?.shares) {
-      const amount = ethers.BigNumber.from(vaultPosition.state.shares);
+  for (const userVaultPosition of userVaultPositions) {
+    if (userVaultPosition.shares.gt(0)) {
       try {
         const redeemParams: RedeemParams = {
           alchemyGasSponsor,
           alchemyGasSponsorApiKey,
           alchemyGasSponsorPolicyId,
-          amount,
+          amount: userVaultPosition.shares,
           chain: provider.network.name,
-          vaultAddress: vaultPosition.vault.address,
+          vaultAddress: userVaultPosition.address,
         };
 
         const redeemFunction = redeemFunctionMap[app.version];
         if (!redeemFunction) {
           redeemResults.push({
-            amount: amount.toString(),
+            amount: userVaultPosition.shares.toString(),
             error: normalizeError(`No redeem function found for app version ${app.version}`),
             status: 'error',
-            vaultAddress: vaultPosition.vault.address,
+            vaultAddress: userVaultPosition.address,
           } as RedeemError);
         } else {
           const redeemResult = await redeemFunction({ pkpInfo, provider, redeemParams });
@@ -229,10 +228,10 @@ export async function redeemVaults({
         }
       } catch (e) {
         redeemResults.push({
-          amount: amount.toString(),
+          amount: userVaultPosition.shares.toString(),
           error: normalizeError(e),
           status: 'error',
-          vaultAddress: vaultPosition.vault.address,
+          vaultAddress: userVaultPosition.address,
         });
       }
     }

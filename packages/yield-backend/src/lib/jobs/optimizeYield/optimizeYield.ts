@@ -6,7 +6,6 @@ import { ethers } from 'ethers';
 import { IRelayPKP } from '@lit-protocol/types';
 
 import { type AppData, assertJobVersion } from '../jobVersion';
-import { type UserVaultPositionItem, type UserPositionItem } from './morphoLoader';
 import {
   DepositResult,
   ReedemResult,
@@ -14,12 +13,13 @@ import {
   depositVault,
   getAddressesByChainId,
   getERC20Balance,
+  getMorphoVaults,
   getTopMorphoVault,
   getUserPermittedVersion,
-  getUserPositions,
   redeemVaults,
 } from './utils';
 import { type MorphoVaultInfo } from './utils/get-morpho-vaults';
+import { type UserVaultPosition, morphoUsdcBalanceMonitor } from '../../balanceMonitor';
 import { env } from '../../env';
 import { normalizeError } from '../../error';
 import { YieldSwap } from '../../mongo/models/YieldSwap';
@@ -35,10 +35,20 @@ export type JobParams = {
 
 const { MINIMUM_USDC_BALANCE, MINIMUM_YIELD_IMPROVEMENT_PERCENT, VINCENT_APP_ID } = env;
 
-function getVaultsToOptimize(
-  userPositions: UserPositionItem,
+async function getVaultsToOptimize(
+  userVaultPositions: UserVaultPosition[],
   topVault: MorphoVaultInfo
-): UserVaultPositionItem[] {
+): Promise<UserVaultPosition[]> {
+  const morphoVaultsData = await getMorphoVaults({
+    where: {
+      address_in: userVaultPositions.map((uvp) => uvp.address),
+      assetSymbol_in: null,
+      chainId_in: null,
+      totalAssetsUsd_gte: 0,
+      whitelisted: null,
+    },
+  });
+
   // TODO improve this calculation
   // Consider the following stuff:
   // - estimated earning in period
@@ -46,14 +56,17 @@ function getVaultsToOptimize(
   // - yield in other tokens
   // - gas cost
   const topVaultNetApy = topVault.state?.netApy || 0;
-  const suboptimalVaults = userPositions.user.vaultPositions.filter((vp) => {
-    const vaultNetApy = vp.vault.state?.netApy || 0;
+  const vaultsToOptimize = userVaultPositions.filter((vp) => {
+    const vaultInfo = morphoVaultsData.find((vault) => vault.address === vp.address);
+    // If there is no vault info, we will try to redeem it anyway, hence the negative infinity
     return (
-      vp.state?.shares > 0 && topVaultNetApy > vaultNetApy + MINIMUM_YIELD_IMPROVEMENT_PERCENT / 100
+      topVaultNetApy >
+      (vaultInfo?.state?.netApy || Number.NEGATIVE_INFINITY) +
+        MINIMUM_YIELD_IMPROVEMENT_PERCENT / 100
     );
   });
 
-  return suboptimalVaults;
+  return vaultsToOptimize;
 }
 
 export async function optimizeYield(job: JobType, sentryScope: Sentry.Scope): Promise<void> {
@@ -70,13 +83,13 @@ export async function optimizeYield(job: JobType, sentryScope: Sentry.Scope): Pr
 
   try {
     consola.debug('Fetching current top strategy, user vault positions and user delegations...');
-    const [userPositions, topVault, userPermittedAppVersion] = await Promise.all<any>([
-      getUserPositions({ pkpInfo, chainId: baseProvider.network.chainId }),
+    const [userVaultPositions, topVault, userPermittedAppVersion] = await Promise.all([
+      morphoUsdcBalanceMonitor.getUserPositions(pkpInfo.ethAddress),
       getTopMorphoVault(),
       getUserPermittedVersion({ appId: VINCENT_APP_ID, ethAddress: pkpInfo.ethAddress }),
     ]);
 
-    consola.debug('Got user positions:', userPositions);
+    consola.debug('Got user vault positions:', userVaultPositions);
     consola.debug('Got top yielding vault:', topVault);
     consola.debug('Got user permitted app version:', userPermittedAppVersion);
 
@@ -125,30 +138,28 @@ export async function optimizeYield(job: JobType, sentryScope: Sentry.Scope): Pr
     }
 
     let redeems: ReedemResult[] = [];
-    if (userPositions) {
-      const vaultsToOptimize = getVaultsToOptimize(userPositions, topVault);
-      consola.debug('Vaults to optimize:', vaultsToOptimize);
+    const vaultsToOptimize = await getVaultsToOptimize(userVaultPositions, topVault);
+    consola.debug('Vaults to optimize:', vaultsToOptimize);
 
-      // Withdraw from vaults to optimize
-      const allRedeems = await redeemVaults({
-        app,
-        pkpInfo,
-        provider: baseProvider,
-        userVaultPositions: vaultsToOptimize,
-      });
-      redeems = allRedeems.filter((redeem) => {
-        if (redeem.status !== 'success') {
-          const { error, ...rest } = redeem;
-          sentryScope.captureException(error, {
-            data: {
-              redeem: { ...rest },
-            },
-          });
-          return false;
-        }
-        return true;
-      });
-    }
+    // Withdraw from vaults to optimize
+    const allRedeems = await redeemVaults({
+      app,
+      pkpInfo,
+      provider: baseProvider,
+      userVaultPositions: vaultsToOptimize,
+    });
+    redeems = allRedeems.filter((redeem) => {
+      if (redeem.status !== 'success') {
+        const { error, ...rest } = redeem;
+        sentryScope.captureException(error, {
+          data: {
+            redeem: { ...rest },
+          },
+        });
+        return false;
+      }
+      return true;
+    });
 
     // Get user USDC balance
     const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
@@ -216,7 +227,7 @@ export async function optimizeYield(job: JobType, sentryScope: Sentry.Scope): Pr
           pkpInfo,
           redeems,
           topVault,
-          userPositions,
+          userVaultPositions,
           userTokenBalances: [tokenBalance],
         },
         null,
@@ -228,7 +239,7 @@ export async function optimizeYield(job: JobType, sentryScope: Sentry.Scope): Pr
       pkpInfo,
       redeems,
       topVault,
-      userPositions,
+      userVaultPositions,
       scheduleId: _id,
       success: true,
       userTokenBalances: [tokenBalance],

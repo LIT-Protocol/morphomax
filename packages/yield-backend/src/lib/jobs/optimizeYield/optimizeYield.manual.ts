@@ -1,6 +1,8 @@
 import * as Sentry from '@sentry/node';
 import { ethers } from 'ethers';
 
+import '../../sentry';
+
 import { optimizeYield } from './optimizeYield';
 import { disconnectVincentAbilityClients } from './utils';
 import { createAgenda } from '../../agenda/agendaClient';
@@ -20,7 +22,7 @@ async function main() {
   }
 
   // Setup
-  const [agenda, mongo] = await Promise.all<any>([createAgenda(), connectToMongoDB(MONGODB_URI)]);
+  const [agenda, mongo] = await Promise.all([createAgenda(), connectToMongoDB(MONGODB_URI)]);
 
   // Job run
   const jobs = await findJobs({ walletAddress, mustExist: true });
