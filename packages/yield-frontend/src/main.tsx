@@ -18,6 +18,12 @@ if (VITE_SENTRY_DSN) {
     dsn: VITE_SENTRY_DSN,
     enabled: !VITE_IS_DEVELOPMENT,
     sendDefaultPii: true,
+    integrations: [
+      Sentry.thirdPartyErrorFilterIntegration({
+        behaviour: 'drop-error-if-contains-third-party-frames',
+        filterKeys: ['vincent-yield-frontend'],
+      }),
+    ],
   });
 }
 
