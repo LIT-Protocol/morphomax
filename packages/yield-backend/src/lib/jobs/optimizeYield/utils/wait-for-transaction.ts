@@ -1,8 +1,12 @@
 import consola from 'consola';
 import { ethers } from 'ethers';
 
+import { env } from '../../../env';
+
+const { DEFAULT_TX_CONFIRMATIONS } = env;
+
 export async function waitForTransaction({
-  confirmations = 2,
+  confirmations = DEFAULT_TX_CONFIRMATIONS,
   provider,
   transactionHash,
 }: {
