@@ -21,8 +21,8 @@ export type Schedule = {
     walletAddress: string;
     updatedAt: string;
   };
-  investedAmountUsd: string;
-  uninvestedAmountUsd: string;
+  investedAmountUsdc: string;
+  uninvestedAmountUsdc: string;
 };
 
 export type Swap = {

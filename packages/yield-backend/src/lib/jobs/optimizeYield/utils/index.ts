@@ -9,7 +9,6 @@ export {
   getTopMorphoVault,
 } from './get-morpho-vaults';
 export { getUserPermittedVersion } from './get-user-permitted-version';
-export { getUserPositions } from './get-user-positions';
 export { handleOperationExecution } from './handle-operation-execution';
 export { type ReedemResult, redeemVaults } from './redeem-vaults';
 export { waitForTransaction } from './wait-for-transaction';

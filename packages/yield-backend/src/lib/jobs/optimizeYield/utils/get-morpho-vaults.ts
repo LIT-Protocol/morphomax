@@ -13,14 +13,15 @@ const cache = new Cache({ checkperiod: 0, stdTTL: 10 * 60, useClones: false }); 
 
 export interface GetVaultsQueryVariables {
   first?: number;
-  orderBy: VaultOrderBy;
-  orderDirection: OrderDirection;
+  orderBy?: VaultOrderBy;
+  orderDirection?: OrderDirection;
   skip?: number;
   where: {
-    assetSymbol_in: string[];
-    chainId_in: number[];
+    address_in: string[] | null;
+    assetSymbol_in: string[] | null;
+    chainId_in: number[] | null;
     totalAssetsUsd_gte: number;
-    whitelisted: boolean;
+    whitelisted: boolean | null;
   };
 }
 
@@ -84,7 +85,11 @@ export function assertIsMorphoVaultInfo(value: unknown): asserts value is Morpho
 export async function getMorphoVaults(
   queryVariables: GetVaultsQueryVariables
 ): Promise<MorphoVaultInfo[]> {
-  const vaults = await getVaults(queryVariables);
+  const vaults = await getVaults({
+    orderBy: VaultOrderBy.NetApy,
+    orderDirection: OrderDirection.Desc,
+    ...queryVariables,
+  });
 
   return vaults.map(
     (vault) =>
@@ -121,6 +126,7 @@ async function batchLoadFn(): Promise<{ vaults: ArrayLike<MorphoVaultInfo | Erro
     orderBy: VaultOrderBy.NetApy,
     orderDirection: OrderDirection.Desc,
     where: {
+      address_in: null,
       assetSymbol_in: ['USDC'],
       chainId_in: [baseProvider.network.chainId],
       totalAssetsUsd_gte: MINIMUM_VAULT_TOTAL_ASSETS_USD,

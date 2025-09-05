@@ -10,14 +10,33 @@ import {
 
 export type VaultItem = NonNullable<GetVaultsQuery['vaults']['items']>[number];
 export const getVaults = async (vars: GetVaultsQueryVariables): Promise<VaultItem[]> => {
-  const { data } = await apollo.query<GetVaultsQuery, GetVaultsQueryVariables>({
-    query: GetVaultsDocument,
-    variables: vars,
-  });
+  const vaults: VaultItem[] = [];
 
-  const vaults = data.vaults.items;
+  const requested = vars.first || Number.MAX_SAFE_INTEGER;
+  let offset = 0;
+  let requestNextPage = true;
 
-  return vaults || [];
+  /* eslint-disable no-await-in-loop */
+  do {
+    const { data } = await apollo.query<GetVaultsQuery, GetVaultsQueryVariables>({
+      query: GetVaultsDocument,
+      variables: { ...vars, skip: offset },
+    });
+
+    vaults.push(...(data.vaults.items || []));
+
+    const { count, countTotal, limit, skip } = data.vaults.pageInfo || {
+      count: 0,
+      countTotal: 0,
+      limit: 0,
+      skip: 0,
+    };
+    offset += limit;
+    requestNextPage = vaults.length < requested && count + skip < countTotal;
+  } while (requestNextPage);
+  /* eslint-enable no-await-in-loop */
+
+  return vaults;
 };
 
 export type UserPositionItem = NonNullable<

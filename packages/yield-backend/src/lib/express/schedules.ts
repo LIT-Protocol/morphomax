@@ -1,6 +1,6 @@
 import { Response } from 'express';
 
-import { type VincentJWTAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
+import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
 import { ScheduleIdentitySchema, ScheduleParamsSchema } from './schema';
 import { VincentAuthenticatedRequest } from './types';
@@ -9,11 +9,20 @@ import { YieldSwap } from '../mongo/models/YieldSwap';
 
 const { cancelJob, createJob, listJobsByWalletAddress } = jobManager;
 
+function getAppAndPKPInfoFromJWT(req: VincentAuthenticatedRequest) {
+  if (!isAppUser(req.user.decodedJWT)) {
+    throw new Error('Vincent JWT is not an app user');
+  }
+
+  const app = getAppInfo(req.user.decodedJWT);
+  const pkpInfo = getPKPInfo(req.user.decodedJWT);
+
+  return { app, pkpInfo };
+}
+
 export const handleListSchedulesRoute = async (req: VincentAuthenticatedRequest, res: Response) => {
   try {
-    const {
-      pkpInfo: { ethAddress },
-    } = req.user.decodedJWT.payload;
+    const { ethAddress } = getPKPInfo(req.user.decodedJWT);
     const schedules = await listJobsByWalletAddress({ walletAddress: ethAddress });
 
     res.json({ data: schedules, success: true });
@@ -27,7 +36,7 @@ export const handleCreateScheduleRoute = async (
   res: Response
 ) => {
   try {
-    const { app, pkpInfo } = (req.user.decodedJWT as VincentJWTAppUser).payload;
+    const { app, pkpInfo } = getAppAndPKPInfoFromJWT(req);
 
     const scheduleParams = ScheduleParamsSchema.parse({
       app,
@@ -45,9 +54,7 @@ export const handleListScheduleSwapsRoute = async (
   req: VincentAuthenticatedRequest,
   res: Response
 ) => {
-  const {
-    pkpInfo: { ethAddress },
-  } = req.user.decodedJWT.payload;
+  const { ethAddress } = getPKPInfo(req.user.decodedJWT);
   const { limit = 10, skip = 0 } = req.query;
 
   const swaps = await YieldSwap.find({ pkpInfo: { ethAddress } })
@@ -71,7 +78,7 @@ export const handleDeleteScheduleRoute = async (
   res: Response
 ) => {
   try {
-    const { app, pkpInfo } = (req.user.decodedJWT as VincentJWTAppUser).payload;
+    const { app, pkpInfo } = getAppAndPKPInfoFromJWT(req);
 
     const scheduleParams = ScheduleParamsSchema.parse({
       app,

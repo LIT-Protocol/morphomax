@@ -8,11 +8,11 @@ import { IRelayPKP } from '@lit-protocol/types';
 import { AppData, getJobVersion } from './jobVersion';
 import * as optimizeYieldJobDef from './optimizeYield';
 import { getAgenda } from '../agenda/agendaClient';
+import { morphoUsdcBalanceMonitor } from '../balanceMonitor';
 import {
   baseProvider,
   getAddressesByChainId,
   getERC20Balance,
-  getUserPositions,
   redeemVaults,
 } from './optimizeYield/utils';
 import { YieldSwap } from '../mongo/models/YieldSwap';
@@ -64,17 +64,19 @@ export async function listJobsByWalletAddress({ walletAddress }: { walletAddress
     agendaJobs.map(async (agendaJob) => {
       const { pkpInfo } = agendaJob.attrs.data;
 
-      const [userBalance, userPositions] = await Promise.all([
+      const [userUsdcBalance, userMorphoUsdcPositions] = await Promise.all([
         getERC20Balance({
           pkpInfo,
           provider: baseProvider,
           tokenAddress: USDC_ADDRESS,
         }),
-        getUserPositions({
-          pkpInfo,
-          chainId: baseProvider.network.chainId,
-        }),
+        morphoUsdcBalanceMonitor.getUserPositions(pkpInfo.ethAddress),
       ]);
+
+      const investedAmountUsdc = userMorphoUsdcPositions.reduce(
+        (b, p) => b.add(p.assets),
+        ethers.constants.Zero
+      );
 
       return {
         _id: String(agendaJob.attrs._id),
@@ -82,18 +84,14 @@ export async function listJobsByWalletAddress({ walletAddress }: { walletAddress
         disabled: agendaJob.attrs.disabled,
         failedAt: agendaJob.attrs.failedAt,
         failReason: agendaJob.attrs.failReason,
-        investedAmountUsd: userPositions?.user.vaultPositions
-          ? String(
-              userPositions.user.vaultPositions.reduce(
-                (acc, vaultPosition) => acc + (vaultPosition.state?.assetsUsd || 0),
-                0
-              )
-            )
-          : 0,
+        investedAmountUsdc: ethers.utils.formatUnits(investedAmountUsdc, userUsdcBalance.decimals),
         lastFinishedAt: agendaJob.attrs.lastFinishedAt,
         lastRunAt: agendaJob.attrs.lastRunAt,
         nextRunAt: agendaJob.attrs.nextRunAt,
-        uninvestedAmountUsd: ethers.utils.formatUnits(userBalance.balance, userBalance.decimals),
+        uninvestedAmountUsdc: ethers.utils.formatUnits(
+          userUsdcBalance.balance,
+          userUsdcBalance.decimals
+        ),
       };
     })
   );
@@ -116,19 +114,13 @@ export async function cancelJob({ app, pkpInfo, scheduleId }: CancelJobParams) {
   await job.save();
 
   if (job) {
-    const userPositions = await getUserPositions({
+    const userVaultPositions = await morphoUsdcBalanceMonitor.getUserPositions(pkpInfo.ethAddress);
+    const allRedeems = await redeemVaults({
+      app,
       pkpInfo,
-      chainId: baseProvider.network.chainId,
+      userVaultPositions,
+      provider: baseProvider,
     });
-    const userVaultPositions = userPositions?.user.vaultPositions;
-    const allRedeems = userVaultPositions?.length
-      ? await redeemVaults({
-          app,
-          pkpInfo,
-          userVaultPositions,
-          provider: baseProvider,
-        })
-      : [];
     const redeems = allRedeems.filter((redeem) => {
       if (redeem.status !== 'success') {
         const { error, ...rest } = redeem;
@@ -153,7 +145,7 @@ export async function cancelJob({ app, pkpInfo, scheduleId }: CancelJobParams) {
       pkpInfo,
       redeems,
       scheduleId,
-      userPositions,
+      userVaultPositions,
       deposits: [],
       success: true,
       userTokenBalance: tokenBalance,

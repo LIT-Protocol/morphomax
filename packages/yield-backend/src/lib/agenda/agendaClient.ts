@@ -57,7 +57,7 @@ export async function createAgenda(config?: typeof defaultConfig): Promise<Agend
   await agenda.start();
   agendaLogger.info('Agenda job processor started');
 
-  // Set up graceful shutdown
+  // Set up agenda graceful shutdown
   process.on('SIGTERM', async () => {
     agendaLogger.info('Shutting down agenda...');
     await agenda.stop();
