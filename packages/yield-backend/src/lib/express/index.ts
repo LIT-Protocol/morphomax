@@ -27,6 +27,7 @@ const { handler, middleware } = createVincentUserMiddleware({
 
 const VERCEL_DOMAINS = /^https:\/\/.*-lit-protocol\.vercel\.app$/;
 const corsConfig = {
+  maxAge: 86400,
   optionsSuccessStatus: 204,
   origin: IS_DEVELOPMENT ? true : [VERCEL_DOMAINS, ...CORS_ALLOWED_DOMAINS],
 };

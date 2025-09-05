@@ -154,14 +154,17 @@ export const useBackend = () => {
 
   const sendUnAuthenticatedRequest = useCallback(
     async <T>(endpoint: string, method: HTTPMethod, body?: unknown): Promise<T> => {
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
+      const headers: HeadersInit = {};
+      if (body != null && method !== 'GET') {
+        headers['Content-Type'] = 'application/json';
+      }
 
       const response = await fetch(`${VITE_BACKEND_URL}${endpoint}`, {
         method,
         headers,
-        ...(body ? { body: JSON.stringify(body) } : {}),
+        body: body ? JSON.stringify(body) : undefined,
+        credentials: 'omit',
+        mode: 'cors',
       });
 
       if (!response.ok) {
@@ -186,9 +189,11 @@ export const useBackend = () => {
       }
 
       const headers: HeadersInit = {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${authInfo.jwt}`,
       };
+      if (body != null) {
+        headers['Content-Type'] = 'application/json';
+      }
 
       const response = await fetch(`${VITE_BACKEND_URL}${endpoint}`, {
         method,
