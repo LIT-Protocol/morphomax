@@ -201,7 +201,7 @@ class MorphoDepositAssetBalanceMonitor {
   // One-shot discovery of all vaults. Should only be used at startup
   private async discoverCurrentVaults() {
     const topicCreate = factoryIface.getEventTopic('CreateMetaMorpho');
-    const assetTopic = ethers.utils.hexZeroPad(BASE_USDC.toLowerCase(), 32);
+    const assetTopic = ethers.utils.hexZeroPad(this.depositAsset, 32);
 
     const logs: ethers.providers.Log[] = [];
     /* eslint-disable no-await-in-loop */
