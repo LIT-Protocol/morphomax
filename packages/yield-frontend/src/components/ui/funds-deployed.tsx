@@ -20,6 +20,8 @@ interface FundsDeployedProps {
   showStopConfirmation?: boolean;
   /** Callback for stop confirmation toggle */
   onToggleStopConfirmation?: () => void;
+  /** Callback when deposit button is clicked */
+  onDepositClick?: () => void;
 }
 
 export const FundsDeployed: React.FC<FundsDeployedProps> = ({
@@ -31,9 +33,8 @@ export const FundsDeployed: React.FC<FundsDeployedProps> = ({
   stopping = false,
   showStopConfirmation = false,
   onToggleStopConfirmation,
+  onDepositClick,
 }) => {
-  const truncatedAddress = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
-
   const getStatusColor = () => {
     switch (status) {
       case 'Active':
@@ -129,17 +130,21 @@ export const FundsDeployed: React.FC<FundsDeployedProps> = ({
         </div>
       </div>
 
-      {/* Wallet Address & BaseScan Link */}
+      {/* Actions */}
       <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
-        <div
-          className="font-mono text-sm"
+        <Button
+          type="button"
+          variant="secondary-outline"
+          size="sm"
+          onClick={onDepositClick}
+          className="px-2 py-1"
           style={{
-            fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
-            color: '#FF4205',
+            fontSize: '12px',
+            padding: 'clamp(0.125rem, 0.3vw, 0.25rem) clamp(0.375rem, 0.75vw, 0.5rem)',
           }}
         >
-          {truncatedAddress}
-        </div>
+          Deposit
+        </Button>
         <a
           href={baseScanUrl}
           target="_blank"

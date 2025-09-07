@@ -48,7 +48,7 @@ export const Balance: React.FC<BalanceProps> = ({
           </div>
           {balanceLoading ? (
             <div className="p-1">
-              <RefreshCw className="h-3 w-3 text-orange-500 animate-spin" />
+              <RefreshCw className="h-3 w-3 animate-spin" style={{ color: '#ff4205' }} />
             </div>
           ) : !balanceError ? (
             <button
