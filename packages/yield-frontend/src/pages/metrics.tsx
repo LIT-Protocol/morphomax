@@ -137,6 +137,7 @@ export function Metrics() {
                   <thead className="border-b border-gray-200 dark:border-gray-700">
                     <tr>
                       <th className="text-left p-2">Name</th>
+                      <th className="text-left p-2">PKP Address</th>
                       <th className="text-left p-2">Next Run</th>
                       <th className="text-left p-2">Last Run</th>
                       <th className="text-left p-2">Fail Count</th>
@@ -147,6 +148,20 @@ export function Metrics() {
                     {metrics.agendaJobs.jobs.map((job, idx) => (
                       <tr key={idx} className="border-b border-gray-200 dark:border-gray-800">
                         <td className="p-2">{job.name}</td>
+                        <td className="p-2">
+                          {job.data?.pkpInfo?.ethAddress ? (
+                            <a
+                              href={`https://basescan.org/address/${job.data.pkpInfo.ethAddress}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-mono"
+                            >
+                              {job.data.pkpInfo.ethAddress.slice(0, 10)}...
+                            </a>
+                          ) : (
+                            '-'
+                          )}
+                        </td>
                         <td className="p-2">
                           {job.nextRunAt ? new Date(job.nextRunAt).toLocaleString() : '-'}
                         </td>
