@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 
-import { getAgenda } from '../agenda/agendaClient';
 import { serviceLogger } from '../logger';
 import { YieldSwap } from '../mongo/models/YieldSwap';
 
@@ -8,9 +8,15 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
   try {
     serviceLogger.info('Fetching metrics data');
 
-    // Get agenda jobs
-    const agenda = getAgenda();
-    const agendaJobs = await agenda._collection.find({}).toArray();
+    // Get agenda jobs directly from MongoDB collection
+    let agendaJobs: any[] = [];
+    try {
+      const agendaCollection = mongoose.connection.db.collection('agendaJobs');
+      agendaJobs = await agendaCollection.find({}).toArray();
+      serviceLogger.info(`Found ${agendaJobs.length} agenda jobs`);
+    } catch (agendaError) {
+      serviceLogger.warn('Failed to fetch agenda jobs:', agendaError);
+    }
 
     // Get morphoswaps (YieldSwap collection)
     const morphoSwaps = await YieldSwap.find({}).sort({ createdAt: -1 }).limit(100).lean();

@@ -67,6 +67,9 @@ export function Metrics() {
         }
 
         const data = await response.json();
+        console.log('Metrics data received:', data);
+        console.log('Agenda jobs count:', data.agendaJobs?.total);
+        console.log('Morpho swaps count:', data.morphoSwaps?.total);
         setMetrics(data);
         setError(null);
       } catch (err) {
@@ -84,52 +87,54 @@ export function Metrics() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative z-10">
       <div className="container mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-white">Metrics Dashboard</h1>
-          <Link to="/" className="text-blue-400 hover:underline">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Metrics Dashboard</h1>
+          <Link to="/" className="text-blue-600 dark:text-blue-400 hover:underline">
             Back to Home
           </Link>
         </div>
 
-        {loading && <div className="text-white">Loading metrics...</div>}
-        {error && <div className="text-red-500">{error}</div>}
+        {loading && <div className="text-gray-900 dark:text-white">Loading metrics...</div>}
+        {error && <div className="text-red-600 dark:text-red-500">{error}</div>}
 
         {metrics && (
           <div className="space-y-6">
             {/* Agenda Jobs Section */}
-            <div className="bg-gray-900 rounded-lg p-6">
-              <h2 className="text-xl font-bold text-white mb-4">Agenda Jobs</h2>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Agenda Jobs</h2>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gray-800 p-3 rounded">
-                  <div className="text-gray-400 text-sm">Total</div>
-                  <div className="text-white text-xl font-bold">{metrics.agendaJobs.total}</div>
+                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                  <div className="text-gray-600 dark:text-gray-400 text-sm">Total</div>
+                  <div className="text-gray-900 dark:text-white text-xl font-bold">
+                    {metrics.agendaJobs.total}
+                  </div>
                 </div>
-                <div className="bg-gray-800 p-3 rounded">
-                  <div className="text-gray-400 text-sm">Completed</div>
-                  <div className="text-green-400 text-xl font-bold">
+                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                  <div className="text-gray-600 dark:text-gray-400 text-sm">Completed</div>
+                  <div className="text-green-600 dark:text-green-400 text-xl font-bold">
                     {metrics.agendaJobs.byStatus.completed}
                   </div>
                 </div>
-                <div className="bg-gray-800 p-3 rounded">
-                  <div className="text-gray-400 text-sm">Failed</div>
-                  <div className="text-red-400 text-xl font-bold">
+                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                  <div className="text-gray-600 dark:text-gray-400 text-sm">Failed</div>
+                  <div className="text-red-600 dark:text-red-400 text-xl font-bold">
                     {metrics.agendaJobs.byStatus.failed}
                   </div>
                 </div>
-                <div className="bg-gray-800 p-3 rounded">
-                  <div className="text-gray-400 text-sm">Scheduled</div>
-                  <div className="text-blue-400 text-xl font-bold">
+                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                  <div className="text-gray-600 dark:text-gray-400 text-sm">Scheduled</div>
+                  <div className="text-blue-600 dark:text-blue-400 text-xl font-bold">
                     {metrics.agendaJobs.byStatus.scheduled}
                   </div>
                 </div>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-white">
-                  <thead className="border-b border-gray-700">
+                <table className="w-full text-gray-900 dark:text-white">
+                  <thead className="border-b border-gray-200 dark:border-gray-700">
                     <tr>
                       <th className="text-left p-2">Name</th>
                       <th className="text-left p-2">Next Run</th>
@@ -140,7 +145,7 @@ export function Metrics() {
                   </thead>
                   <tbody>
                     {metrics.agendaJobs.jobs.map((job, idx) => (
-                      <tr key={idx} className="border-b border-gray-800">
+                      <tr key={idx} className="border-b border-gray-200 dark:border-gray-800">
                         <td className="p-2">{job.name}</td>
                         <td className="p-2">
                           {job.nextRunAt ? new Date(job.nextRunAt).toLocaleString() : '-'}
@@ -152,13 +157,13 @@ export function Metrics() {
                         <td className="p-2">
                           {job.disabled && <span className="text-gray-500">Disabled</span>}
                           {!job.disabled && job.failCount > 0 && (
-                            <span className="text-red-400">Failed</span>
+                            <span className="text-red-600 dark:text-red-400">Failed</span>
                           )}
                           {!job.disabled && job.failCount === 0 && job.lastFinishedAt && (
-                            <span className="text-green-400">Success</span>
+                            <span className="text-green-600 dark:text-green-400">Success</span>
                           )}
                           {!job.disabled && !job.lastFinishedAt && (
-                            <span className="text-yellow-400">Pending</span>
+                            <span className="text-yellow-600 dark:text-yellow-400">Pending</span>
                           )}
                         </td>
                       </tr>
@@ -169,14 +174,14 @@ export function Metrics() {
             </div>
 
             {/* Morpho Swaps Section */}
-            <div className="bg-gray-900 rounded-lg p-6">
-              <h2 className="text-xl font-bold text-white mb-4">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                 Morpho Swaps (Total: {metrics.morphoSwaps.total})
               </h2>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-white">
-                  <thead className="border-b border-gray-700">
+                <table className="w-full text-gray-900 dark:text-white">
+                  <thead className="border-b border-gray-200 dark:border-gray-700">
                     <tr>
                       <th className="text-left p-2">ID</th>
                       <th className="text-left p-2">Success</th>
@@ -190,13 +195,13 @@ export function Metrics() {
                   </thead>
                   <tbody>
                     {metrics.morphoSwaps.recent.map((swap) => (
-                      <tr key={swap.id} className="border-b border-gray-800">
+                      <tr key={swap.id} className="border-b border-gray-200 dark:border-gray-800">
                         <td className="p-2 text-xs font-mono">{swap.id.slice(-8)}</td>
                         <td className="p-2">
                           {swap.success ? (
-                            <span className="text-green-400">✓</span>
+                            <span className="text-green-600 dark:text-green-400">✓</span>
                           ) : (
-                            <span className="text-red-400">✗</span>
+                            <span className="text-red-600 dark:text-red-400">✗</span>
                           )}
                         </td>
                         <td className="p-2 text-xs font-mono">
