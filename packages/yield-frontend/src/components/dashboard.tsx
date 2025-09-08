@@ -102,7 +102,9 @@ export const Dashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [createSchedule, getSchedules]);
+
+    refetchBalance();
+  }, [createSchedule, getSchedules, refetchBalance]);
 
   const handleStopSchedule = useCallback(
     async (scheduleId: string) => {
@@ -120,8 +122,10 @@ export const Dashboard: React.FC = () => {
       } finally {
         setStoppingSchedule(null);
       }
+
+      refetchBalance();
     },
-    [deleteSchedule, getSchedules]
+    [deleteSchedule, getSchedules, refetchBalance]
   );
 
   if (!authInfo?.pkp.ethAddress) {
