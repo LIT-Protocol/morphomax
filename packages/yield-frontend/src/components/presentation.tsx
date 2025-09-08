@@ -8,22 +8,7 @@ import { Header } from '@/components/ui/header';
 import { PageHeader } from '@/components/ui/page-header';
 import { useTheme } from '@/components/shared/useTheme';
 import { Button } from '@/components/ui/button';
-import { FAQ } from '@/components/ui/faq';
-
-const faqData = [
-  {
-    id: 'what-is-vincent-yield',
-    question: 'What is Vincent Yield?',
-    answer:
-      'Vincent Yield is an automated yield optimization platform that securely rotates your Base USDC into the highest-yielding vaults on Morpho every week.',
-  },
-  {
-    id: 'withdraw-funds',
-    question: 'How do I withdraw my funds?',
-    answer:
-      '1. Go to https://dashboard.heyvincent.ai/user/apps.\n2. Click on the "Wallet Icon" on the card of the application.\n3. Use WalletConnect or our Withdraw panel to manage your funds.',
-  },
-];
+import { FAQ, faqData } from '@/components/ui/faq';
 
 export const Presentation: React.FC = () => {
   const { getJwt } = useBackend();

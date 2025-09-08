@@ -12,6 +12,21 @@ interface FAQProps {
   items: FAQItem[];
 }
 
+export const faqData: FAQItem[] = [
+  {
+    id: 'what-is-vincent-yield',
+    question: 'What is Vincent Yield?',
+    answer:
+      'Vincent Yield is an automated yield optimization platform that securely rotates your Base USDC into the highest-yielding vaults on Morpho every week.',
+  },
+  {
+    id: 'withdraw-funds',
+    question: 'How do I withdraw my funds?',
+    answer:
+      '1. Go to <a href="https://dashboard.heyvincent.ai/user/apps" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 underline">https://dashboard.heyvincent.ai/user/apps</a>.\n2. Click on the "Wallet Icon" on the card of the application.\n3. Use WalletConnect or our Withdraw panel to manage your funds. You\'d need gas on the chain for the withdraw transaction.',
+  },
+];
+
 const FAQItem: React.FC<{ item: FAQItem; isOpen: boolean; onToggle: () => void }> = ({
   item,
   isOpen,
@@ -34,9 +49,11 @@ const FAQItem: React.FC<{ item: FAQItem; isOpen: boolean; onToggle: () => void }
       {isOpen && (
         <div className={`px-3 sm:px-6 pb-4 ${theme.textMuted} text-sm leading-relaxed`}>
           {item.answer.split('\n').map((line, index) => (
-            <div key={index} className={index > 0 ? 'mt-2' : ''}>
-              {line}
-            </div>
+            <div
+              key={index}
+              className={index > 0 ? 'mt-2' : ''}
+              dangerouslySetInnerHTML={{ __html: line }}
+            />
           ))}
         </div>
       )}
