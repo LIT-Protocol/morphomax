@@ -176,7 +176,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex justify-center">
             {yieldLoading ? (
               <div className="flex items-center justify-center gap-2 px-3 py-1.5">
-                <RefreshCw className="h-3 w-3 text-orange-500 animate-spin" />
+                <RefreshCw className="h-3 w-3 animate-spin" style={{ color: '#ff4205' }} />
                 <span className={`${theme.textMuted} text-xs font-medium tracking-wide`}>
                   Loading yield data...
                 </span>
@@ -232,6 +232,7 @@ export const Dashboard: React.FC = () => {
                     onToggleStopConfirmation={() =>
                       setShowStopConfirmation(showStopConfirmation === uniqueKey ? null : uniqueKey)
                     }
+                    onDepositClick={() => setShowWalletModal(true)}
                   />
                 </div>
               );
@@ -263,7 +264,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex flex-col items-center py-4 sm:py-5 border-t border-gray-200 dark:border-gray-700 space-y-3">
             {loading && loadingStatus && (
               <div className="flex items-center gap-2">
-                <RefreshCw className="h-3 w-3 text-orange-500 animate-spin" />
+                <RefreshCw className="h-3 w-3 animate-spin" style={{ color: '#ff4205' }} />
                 <span className={`${theme.textMuted} text-xs font-medium`}>{loadingStatus}</span>
               </div>
             )}
