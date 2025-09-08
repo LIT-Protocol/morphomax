@@ -1,4 +1,5 @@
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -12,19 +13,19 @@ export type Incremental<T> =
   | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string };
-  String: { input: string; output: string };
-  Boolean: { input: boolean; output: boolean };
-  Int: { input: number; output: number };
-  Float: { input: number; output: number };
   /** 42 character long hex address */
   Address: { input: any; output: any };
   /** The `BigInt` scalar type represents non-fractional signed whole numeric values. */
   BigInt: { input: any; output: any };
+  Boolean: { input: boolean; output: boolean };
+  Float: { input: number; output: number };
   /** Hexadecimal string */
   HexString: { input: any; output: any };
+  ID: { input: string; output: string };
+  Int: { input: number; output: number };
   /** 66 character long hexadecimal market ID */
   MarketId: { input: any; output: any };
+  String: { input: string; output: string };
 };
 
 export type AddressDataPoint = {
@@ -4207,22 +4208,15 @@ export type _PaginatedCrossVersionVault = {
 };
 
 export type GetUserPositionsQueryVariables = Exact<{
-  where: InputMaybe<VaultPositionFilters>;
   first?: InputMaybe<Scalars['Int']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
+  where: InputMaybe<VaultPositionFilters>;
 }>;
 
 export type GetUserPositionsQuery = {
   __typename?: 'Query';
   vaultPositions: {
     __typename?: 'PaginatedMetaMorphoPositions';
-    pageInfo: {
-      __typename?: 'PageInfo';
-      count: number;
-      countTotal: number;
-      limit: number;
-      skip: number;
-    } | null;
     items: Array<{
       __typename?: 'VaultPosition';
       id: string;
@@ -4230,28 +4224,6 @@ export type GetUserPositionsQuery = {
         __typename?: 'User';
         vaultPositions: Array<{
           __typename?: 'VaultPosition';
-          vault: {
-            __typename?: 'Vault';
-            address: any;
-            id: string;
-            name: string;
-            symbol: string;
-            whitelisted: boolean;
-            asset: {
-              __typename?: 'Asset';
-              address: any;
-              decimals: number;
-              name: string;
-              symbol: string;
-            };
-            state: {
-              __typename?: 'VaultState';
-              apy: number;
-              avgApy: number | null;
-              avgNetApy: number | null;
-              netApy: number | null;
-            } | null;
-          };
           state: {
             __typename?: 'VaultPositionState';
             assets: any | null;
@@ -4264,24 +4236,31 @@ export type GetUserPositionsQuery = {
             shares: any;
             timestamp: any;
           } | null;
+          vault: {
+            __typename?: 'Vault';
+            address: any;
+            asset: {
+              __typename?: 'Asset';
+              address: any;
+              decimals: number;
+              name: string;
+              symbol: string;
+            };
+            id: string;
+            name: string;
+            state: {
+              __typename?: 'VaultState';
+              apy: number;
+              avgApy: number | null;
+              avgNetApy: number | null;
+              netApy: number | null;
+            } | null;
+            symbol: string;
+            whitelisted: boolean;
+          };
         }>;
       };
     }> | null;
-  };
-};
-
-export type GetVaultsQueryVariables = Exact<{
-  orderBy: InputMaybe<VaultOrderBy>;
-  where: InputMaybe<VaultFilters>;
-  orderDirection: InputMaybe<OrderDirection>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-}>;
-
-export type GetVaultsQuery = {
-  __typename?: 'Query';
-  vaults: {
-    __typename?: 'PaginatedMetaMorphos';
     pageInfo: {
       __typename?: 'PageInfo';
       count: number;
@@ -4289,15 +4268,28 @@ export type GetVaultsQuery = {
       limit: number;
       skip: number;
     } | null;
+  };
+};
+
+export type GetVaultsQueryVariables = Exact<{
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy: InputMaybe<VaultOrderBy>;
+  orderDirection: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where: InputMaybe<VaultFilters>;
+}>;
+
+export type GetVaultsQuery = {
+  __typename?: 'Query';
+  vaults: {
+    __typename?: 'PaginatedMetaMorphos';
     items: Array<{
       __typename?: 'Vault';
       address: any;
-      id: string;
-      name: string;
-      symbol: string;
-      whitelisted: boolean;
       asset: { __typename?: 'Asset'; address: any; decimals: number; name: string; symbol: string };
       chain: { __typename?: 'Chain'; id: number; network: string };
+      id: string;
+      name: string;
       state: {
         __typename?: 'VaultState';
         apy: number;
@@ -4306,42 +4298,29 @@ export type GetVaultsQuery = {
         netApy: number | null;
         netApyWithoutRewards: number;
       } | null;
+      symbol: string;
+      whitelisted: boolean;
     }> | null;
+    pageInfo: {
+      __typename?: 'PageInfo';
+      count: number;
+      countTotal: number;
+      limit: number;
+      skip: number;
+    } | null;
   };
 };
 
 export const GetUserPositionsDocument = {
-  kind: 'Document',
   definitions: [
     {
       kind: 'OperationDefinition',
-      operation: 'query',
       name: { kind: 'Name', value: 'GetUserPositions' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'where' } },
-          type: { kind: 'NamedType', name: { kind: 'Name', value: 'VaultPositionFilters' } },
-        },
-        {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'first' } },
-          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
-          defaultValue: { kind: 'IntValue', value: '100' },
-        },
-        {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
-          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
-          defaultValue: { kind: 'IntValue', value: '0' },
-        },
-      ],
+      operation: 'query',
       selectionSet: {
         kind: 'SelectionSet',
         selections: [
           {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'vaultPositions' },
             arguments: [
               {
                 kind: 'Argument',
@@ -4359,6 +4338,8 @@ export const GetUserPositionsDocument = {
                 value: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
               },
             ],
+            kind: 'Field',
+            name: { kind: 'Name', value: 'vaultPositions' },
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
@@ -4499,51 +4480,39 @@ export const GetUserPositionsDocument = {
           },
         ],
       },
-    },
-  ],
-} as unknown as DocumentNode<GetUserPositionsQuery, GetUserPositionsQueryVariables>;
-export const GetVaultsDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetVaults' },
       variableDefinitions: [
         {
           kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'orderBy' } },
-          type: { kind: 'NamedType', name: { kind: 'Name', value: 'VaultOrderBy' } },
-        },
-        {
-          kind: 'VariableDefinition',
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'VaultPositionFilters' } },
           variable: { kind: 'Variable', name: { kind: 'Name', value: 'where' } },
-          type: { kind: 'NamedType', name: { kind: 'Name', value: 'VaultFilters' } },
         },
         {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'orderDirection' } },
-          type: { kind: 'NamedType', name: { kind: 'Name', value: 'OrderDirection' } },
-        },
-        {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'first' } },
-          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
           defaultValue: { kind: 'IntValue', value: '100' },
+          kind: 'VariableDefinition',
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'first' } },
         },
         {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
-          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
           defaultValue: { kind: 'IntValue', value: '0' },
+          kind: 'VariableDefinition',
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
         },
       ],
+    },
+  ],
+  kind: 'Document',
+} as unknown as DocumentNode<GetUserPositionsQuery, GetUserPositionsQueryVariables>;
+export const GetVaultsDocument = {
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      name: { kind: 'Name', value: 'GetVaults' },
+      operation: 'query',
       selectionSet: {
         kind: 'SelectionSet',
         selections: [
           {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'vaults' },
             arguments: [
               {
                 kind: 'Argument',
@@ -4571,6 +4540,8 @@ export const GetVaultsDocument = {
                 value: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
               },
             ],
+            kind: 'Field',
+            name: { kind: 'Name', value: 'vaults' },
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
@@ -4647,6 +4618,36 @@ export const GetVaultsDocument = {
           },
         ],
       },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'VaultOrderBy' } },
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'orderBy' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'VaultFilters' } },
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'where' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'OrderDirection' } },
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'orderDirection' } },
+        },
+        {
+          defaultValue: { kind: 'IntValue', value: '100' },
+          kind: 'VariableDefinition',
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'first' } },
+        },
+        {
+          defaultValue: { kind: 'IntValue', value: '0' },
+          kind: 'VariableDefinition',
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
+        },
+      ],
     },
   ],
+  kind: 'Document',
 } as unknown as DocumentNode<GetVaultsQuery, GetVaultsQueryVariables>;
