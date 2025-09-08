@@ -8,6 +8,7 @@ import { Header } from '@/components/ui/header';
 import { PageHeader } from '@/components/ui/page-header';
 import { useTheme } from '@/components/shared/useTheme';
 import { Button } from '@/components/ui/button';
+import { FAQ, faqData } from '@/components/ui/faq';
 
 export const Presentation: React.FC = () => {
   const { getJwt } = useBackend();
@@ -54,6 +55,7 @@ export const Presentation: React.FC = () => {
           </Button>
         </div>
 
+        <FAQ items={faqData} />
         <Footer />
       </div>
     </div>

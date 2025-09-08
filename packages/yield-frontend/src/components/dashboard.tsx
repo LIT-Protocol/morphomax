@@ -15,6 +15,7 @@ import { useFetchUsdcBalance } from '@/hooks/useFetchUsdcBalance';
 import { ApyDropdown } from '@/components/ApyDropdown';
 import { Balance } from '@/components/ui/balance';
 import { FundsDeployed } from '@/components/ui/funds-deployed';
+import { FAQ, faqData } from '@/components/ui/faq';
 
 const { VITE_VINCENT_YIELD_MINIMUM_DEPOSIT } = env;
 
@@ -292,6 +293,7 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
+        <FAQ items={faqData} />
         <Footer />
       </div>
 

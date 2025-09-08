@@ -163,7 +163,7 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
                 >
                   Bonus APY is based on an estimated $250M $LITKEY FDV. It applies to the first $20M
                   deposited into Vincent apps, with rewards capped at $20K per unique depositor and
-                  distributed at a future snapshot.{' '}
+                  allocated at a future snapshot.{' '}
                 </div>
               </div>
 
