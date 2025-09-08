@@ -14,13 +14,9 @@ import { Background } from '@/components/ui/background';
 function AppContent() {
   const { authInfo } = useContext(JwtContext);
 
-  if (!authInfo) {
-    return <Login />;
-  }
-
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={authInfo ? <Home /> : <Login />} />
       <Route path="/metrics" element={<Metrics />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

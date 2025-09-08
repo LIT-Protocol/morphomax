@@ -72,7 +72,7 @@ export const registerRoutes = (app: Express) => {
     setSentryUserMiddleware,
     handler(handleDeleteScheduleRoute)
   );
-  app.get('/metrics', middleware, setSentryUserMiddleware, handler(handleGetMetricsRoute));
+  app.get('/metrics', handleGetMetricsRoute);
 
   serviceLogger.info(`Routes registered`);
 };

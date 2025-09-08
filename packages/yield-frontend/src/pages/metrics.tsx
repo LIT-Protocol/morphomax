@@ -1,6 +1,5 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { JwtContext } from '@/contexts/jwt';
 import { env } from '@/config/env';
 
 const { VITE_BACKEND_URL } = env;
@@ -48,22 +47,18 @@ interface MetricsData {
 }
 
 export function Metrics() {
-  const { authInfo } = useContext(JwtContext);
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchMetrics() {
-      if (!authInfo?.jwt) return;
-
       try {
         setLoading(true);
         const response = await fetch(`${VITE_BACKEND_URL}/metrics`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${authInfo.jwt}`,
           },
         });
 
@@ -86,11 +81,7 @@ export function Metrics() {
     // Refresh every 30 seconds
     const interval = setInterval(fetchMetrics, 30000);
     return () => clearInterval(interval);
-  }, [authInfo]);
-
-  if (!authInfo) {
-    return <div>Please login to view metrics</div>;
-  }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-950">

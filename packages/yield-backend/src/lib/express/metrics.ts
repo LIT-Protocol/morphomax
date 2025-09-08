@@ -1,11 +1,10 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
-import { VincentAuthenticatedRequest } from './types';
 import { getAgenda } from '../agenda/agendaClient';
 import { serviceLogger } from '../logger';
 import { YieldSwap } from '../mongo/models/YieldSwap';
 
-export const handleGetMetricsRoute = async (req: VincentAuthenticatedRequest, res: Response) => {
+export const handleGetMetricsRoute = async (req: Request, res: Response) => {
   try {
     serviceLogger.info('Fetching metrics data');
 
