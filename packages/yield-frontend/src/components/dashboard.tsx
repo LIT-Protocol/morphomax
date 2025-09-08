@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { JwtContext } from '@/contexts/jwt';
@@ -157,21 +156,9 @@ export const Dashboard: React.FC = () => {
           isDark={isDark}
           onToggleTheme={toggleTheme}
           rightButton={
-            <>
-              <Link to="/metrics">
-                <Button variant="secondary-outline" size="sm" className="px-2 sm:px-3 mr-1">
-                  Metrics
-                </Button>
-              </Link>
-              <Button
-                variant="secondary-outline"
-                size="sm"
-                onClick={logOut}
-                className="px-2 sm:px-3"
-              >
-                Log Out
-              </Button>
-            </>
+            <Button variant="secondary-outline" size="sm" onClick={logOut} className="px-2 sm:px-3">
+              Log Out
+            </Button>
           }
         />
 
