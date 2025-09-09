@@ -102,9 +102,6 @@ export function Metrics() {
 
   useEffect(() => {
     fetchMetrics();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchMetrics, 30000);
-    return () => clearInterval(interval);
   }, [fetchMetrics]);
 
   // Since we're now using server-side pagination, we just return the data as-is
