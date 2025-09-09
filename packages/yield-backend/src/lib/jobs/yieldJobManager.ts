@@ -54,29 +54,51 @@ export async function findJobs({
   return jobs;
 }
 
+interface InvestedBalance {
+  decimals: number;
+  investedAmountUsdc: ethers.BigNumber;
+  uninvestedAmountUsdc: ethers.BigNumber;
+}
+
+export async function getScheduleBalances({
+  walletAddress,
+}: {
+  walletAddress: string;
+}): Promise<InvestedBalance> {
+  const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
+
+  const [userUsdcBalance, userMorphoUsdcPositions] = await Promise.all([
+    getERC20Balance({
+      ethAddress: walletAddress,
+      provider: baseProvider,
+      tokenAddress: USDC_ADDRESS,
+    }),
+    morphoUsdcBalanceMonitor.getUserPositions(walletAddress),
+  ]);
+
+  const investedAmountUsdc = userMorphoUsdcPositions.reduce(
+    (b, p) => b.add(p.assets),
+    ethers.constants.Zero
+  );
+
+  return {
+    investedAmountUsdc,
+    decimals: userUsdcBalance.decimals,
+    uninvestedAmountUsdc: userUsdcBalance.balance,
+  };
+}
+
 export async function listJobsByWalletAddress({ walletAddress }: { walletAddress: string }) {
   logger.log('listing jobs', { walletAddress });
   const agendaJobs = await findJobs({ walletAddress });
-
-  const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
 
   const jobsWithStatus = await Promise.all(
     agendaJobs.map(async (agendaJob) => {
       const { pkpInfo } = agendaJob.attrs.data;
 
-      const [userUsdcBalance, userMorphoUsdcPositions] = await Promise.all([
-        getERC20Balance({
-          pkpInfo,
-          provider: baseProvider,
-          tokenAddress: USDC_ADDRESS,
-        }),
-        morphoUsdcBalanceMonitor.getUserPositions(pkpInfo.ethAddress),
-      ]);
-
-      const investedAmountUsdc = userMorphoUsdcPositions.reduce(
-        (b, p) => b.add(p.assets),
-        ethers.constants.Zero
-      );
+      const { decimals, investedAmountUsdc, uninvestedAmountUsdc } = await getScheduleBalances({
+        walletAddress: pkpInfo.ethAddress,
+      });
 
       return {
         _id: String(agendaJob.attrs._id),
@@ -84,14 +106,11 @@ export async function listJobsByWalletAddress({ walletAddress }: { walletAddress
         disabled: agendaJob.attrs.disabled,
         failedAt: agendaJob.attrs.failedAt,
         failReason: agendaJob.attrs.failReason,
-        investedAmountUsdc: ethers.utils.formatUnits(investedAmountUsdc, userUsdcBalance.decimals),
+        investedAmountUsdc: ethers.utils.formatUnits(investedAmountUsdc, decimals),
         lastFinishedAt: agendaJob.attrs.lastFinishedAt,
         lastRunAt: agendaJob.attrs.lastRunAt,
         nextRunAt: agendaJob.attrs.nextRunAt,
-        uninvestedAmountUsdc: ethers.utils.formatUnits(
-          userUsdcBalance.balance,
-          userUsdcBalance.decimals
-        ),
+        uninvestedAmountUsdc: ethers.utils.formatUnits(uninvestedAmountUsdc, decimals),
       };
     })
   );
@@ -136,7 +155,7 @@ export async function cancelJob({ app, pkpInfo, scheduleId }: CancelJobParams) {
 
     const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
     const tokenBalance = await getERC20Balance({
-      pkpInfo,
+      ethAddress: pkpInfo.ethAddress,
       provider: baseProvider,
       tokenAddress: USDC_ADDRESS,
     });

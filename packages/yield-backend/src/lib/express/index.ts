@@ -1,12 +1,14 @@
 import * as Sentry from '@sentry/node';
 import cors from 'cors';
-import express, { Express, NextFunction, Response } from 'express';
+import express, { Express, NextFunction, Request, Response } from 'express';
 
 import { createVincentUserMiddleware } from '@lit-protocol/vincent-app-sdk/expressMiddleware';
 import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
 import {
   handleCreateScheduleRoute,
+  handleGetScheduleBalancesRoute,
+  handleGetScheduleBalancesRouteForGalxe,
   handleDeleteScheduleRoute,
   handleListSchedulesRoute,
   handleListScheduleSwapsRoute,
@@ -26,10 +28,11 @@ const { handler, middleware } = createVincentUserMiddleware({
 });
 
 const VERCEL_DOMAINS = /^https:\/\/.*-lit-protocol\.vercel\.app$/;
+const GALXE_DOMAIN = 'https://dashboard.galxe.com';
 const corsConfig = {
   maxAge: 86400,
   optionsSuccessStatus: 204,
-  origin: IS_DEVELOPMENT ? true : [VERCEL_DOMAINS, ...CORS_ALLOWED_DOMAINS],
+  origin: IS_DEVELOPMENT ? true : [VERCEL_DOMAINS, GALXE_DOMAIN, ...CORS_ALLOWED_DOMAINS],
 };
 
 const setSentryUserMiddleware = handler(
@@ -56,8 +59,16 @@ export const registerRoutes = (app: Express) => {
   }
   app.use(cors(corsConfig));
 
+  // Strategies
   app.get('/strategy/top', handleGetTopStrategyRoute);
-  app.get('/swap', middleware, setSentryUserMiddleware, handler(handleListSwapsRoute));
+
+  // Schedules
+  app.get(
+    '/schedule/balances',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleGetScheduleBalancesRoute)
+  );
   app.get('/schedule', middleware, setSentryUserMiddleware, handler(handleListSchedulesRoute));
   app.post('/schedule', middleware, setSentryUserMiddleware, handler(handleCreateScheduleRoute));
   app.get(
@@ -72,6 +83,20 @@ export const registerRoutes = (app: Express) => {
     setSentryUserMiddleware,
     handler(handleDeleteScheduleRoute)
   );
+
+  // Swaps
+  app.get('/swap', middleware, setSentryUserMiddleware, handler(handleListSwapsRoute));
+
+  // Galxe
+  app.get('/galxe/balances', handleGetScheduleBalancesRouteForGalxe);
+
+  // Errors
+  app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+    serviceLogger.error(err);
+    Sentry.captureException(err);
+    res.status(500).json({ error: (err as Error).message });
+    next();
+  });
 
   serviceLogger.info(`Routes registered`);
 };

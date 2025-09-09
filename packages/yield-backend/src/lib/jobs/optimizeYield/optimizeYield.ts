@@ -164,7 +164,7 @@ export async function optimizeYield(job: JobType, sentryScope: Sentry.Scope): Pr
     // Get user USDC balance
     const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
     const tokenBalance = await getERC20Balance({
-      pkpInfo,
+      ethAddress: pkpInfo.ethAddress,
       provider: baseProvider,
       tokenAddress: USDC_ADDRESS,
     });
