@@ -154,12 +154,12 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
         totalPages: Math.ceil(totalAgendaJobs / itemsPerPage),
       },
       morphoSwaps: {
+        itemsPerPage,
+        page: morphoPage,
         recent: morphoSwaps.map((swap) => ({
-          itemsPerPage,
           createdAt: swap.createdAt,
           deposits: swap.deposits.length,
           id: swap._id,
-          page: morphoPage,
           pkpAddress: swap.pkpInfo.ethAddress,
           redeems: swap.redeems?.length || 0,
           scheduleId: swap.scheduleId,
