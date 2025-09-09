@@ -5,6 +5,7 @@ import express, { Express, NextFunction, Response } from 'express';
 import { createVincentUserMiddleware } from '@lit-protocol/vincent-app-sdk/expressMiddleware';
 import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
+import { handleGetMetricsRoute } from './metrics';
 import {
   handleCreateScheduleRoute,
   handleDeleteScheduleRoute,
@@ -72,6 +73,7 @@ export const registerRoutes = (app: Express) => {
     setSentryUserMiddleware,
     handler(handleDeleteScheduleRoute)
   );
+  app.get('/metrics', handleGetMetricsRoute);
 
   serviceLogger.info(`Routes registered`);
 };

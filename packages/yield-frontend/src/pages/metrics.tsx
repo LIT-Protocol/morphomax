@@ -1,0 +1,397 @@
+import { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { ethers } from 'ethers';
+import { env } from '@/config/env';
+
+const { VITE_BACKEND_URL } = env;
+
+interface MetricsData {
+  agendaJobs: {
+    total: number;
+    page: number;
+    itemsPerPage: number;
+    totalPages: number;
+    byStatus: {
+      completed: number;
+      failed: number;
+      scheduled: number;
+      running: number;
+    };
+    jobs: Array<{
+      name: string;
+      nextRunAt: string | null;
+      lastRunAt: string | null;
+      lastFinishedAt: string | null;
+      failCount: number;
+      failedAt: string | null;
+      disabled: boolean;
+      repeatInterval: string | null;
+      data: {
+        pkpInfo: {
+          ethAddress: string;
+        };
+      } | null;
+    }>;
+  };
+  morphoSwaps: {
+    total: number;
+    page: number;
+    itemsPerPage: number;
+    totalPages: number;
+    recent: Array<{
+      id: string;
+      scheduleId: string;
+      success: boolean;
+      pkpAddress: string;
+      topVault: {
+        name: string;
+        address: string;
+        apy: number;
+        netApy: number;
+      } | null;
+      deposits: number;
+      redeems: number;
+      createdAt: string;
+      updatedAt: string;
+      userTokenBalances: Array<{
+        address: string;
+        balance: string;
+        decimals: number;
+      }>;
+    }>;
+  };
+}
+
+export function Metrics() {
+  const [metrics, setMetrics] = useState<MetricsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'agenda' | 'morpho'>('agenda');
+  const [agendaPage, setAgendaPage] = useState(1);
+  const [morphoPage, setMorphoPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 20;
+
+  // Utility function to format token balance using decimals with ethers
+  const formatTokenBalance = (balance: string, decimals: number): string => {
+    try {
+      const formatted = ethers.utils.formatUnits(balance, decimals);
+      // Remove trailing zeros after decimal point
+      const num = parseFloat(formatted);
+      return num.toString();
+    } catch {
+      return balance; // Return original if formatting fails
+    }
+  };
+
+  const fetchMetrics = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        agendaPage: agendaPage.toString(),
+        morphoPage: morphoPage.toString(),
+        itemsPerPage: ITEMS_PER_PAGE.toString(),
+      });
+
+      const response = await fetch(`${VITE_BACKEND_URL}/metrics?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Metrics data received:', data);
+      console.log('Agenda jobs count:', data.agendaJobs?.total);
+      console.log('Morpho swaps count:', data.morphoSwaps?.total);
+      setMetrics(data);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch metrics:', err);
+      setError('Failed to load metrics data');
+    } finally {
+      setLoading(false);
+    }
+  }, [agendaPage, morphoPage]);
+
+  useEffect(() => {
+    fetchMetrics();
+  }, [fetchMetrics]);
+
+  // Since we're now using server-side pagination, we just return the data as-is
+  const getAgendaPaginatedJobs = () => {
+    if (!metrics) return [];
+    return metrics.agendaJobs.jobs;
+  };
+
+  const getMorphoPaginatedSwaps = () => {
+    if (!metrics) return [];
+    return metrics.morphoSwaps.recent;
+  };
+
+  const getAgendaTotalPages = () => {
+    if (!metrics) return 0;
+    return metrics.agendaJobs.totalPages;
+  };
+
+  const getMorphoTotalPages = () => {
+    if (!metrics) return 0;
+    return metrics.morphoSwaps.totalPages;
+  };
+
+  const PaginationControls = ({
+    currentPage,
+    totalPages,
+    onPageChange,
+  }: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }) => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-4">
+        <button
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300"
+        >
+          Previous
+        </button>
+        <span className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300"
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative z-10">
+      <div className="container mx-auto p-4">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Metrics Dashboard</h1>
+          <Link to="/" className="text-blue-600 dark:text-blue-400 hover:underline">
+            Back to Home
+          </Link>
+        </div>
+
+        {loading && <div className="text-gray-900 dark:text-white">Loading metrics...</div>}
+        {error && <div className="text-red-600 dark:text-red-500">{error}</div>}
+
+        {metrics && (
+          <div className="space-y-6">
+            {/* Tab Navigation */}
+            <div className="border-b border-gray-200 dark:border-gray-700">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('agenda')}
+                  className={`whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium ${
+                    activeTab === 'agenda'
+                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Agenda Jobs ({metrics.agendaJobs.total})
+                </button>
+                <button
+                  onClick={() => setActiveTab('morpho')}
+                  className={`whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium ${
+                    activeTab === 'morpho'
+                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Morpho Swaps ({metrics.morphoSwaps.total})
+                </button>
+              </nav>
+            </div>
+
+            {/* Agenda Jobs Tab */}
+            {activeTab === 'agenda' && (
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                  Agenda Jobs
+                </h2>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                    <div className="text-gray-600 dark:text-gray-400 text-sm">Total</div>
+                    <div className="text-gray-900 dark:text-white text-xl font-bold">
+                      {metrics.agendaJobs.total}
+                    </div>
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                    <div className="text-gray-600 dark:text-gray-400 text-sm">Completed</div>
+                    <div className="text-green-600 dark:text-green-400 text-xl font-bold">
+                      {metrics.agendaJobs.byStatus.completed}
+                    </div>
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                    <div className="text-gray-600 dark:text-gray-400 text-sm">Failed</div>
+                    <div className="text-red-600 dark:text-red-400 text-xl font-bold">
+                      {metrics.agendaJobs.byStatus.failed}
+                    </div>
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                    <div className="text-gray-600 dark:text-gray-400 text-sm">Scheduled</div>
+                    <div className="text-blue-600 dark:text-blue-400 text-xl font-bold">
+                      {metrics.agendaJobs.byStatus.scheduled}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-gray-900 dark:text-white">
+                    <thead className="border-b border-gray-200 dark:border-gray-700">
+                      <tr>
+                        <th className="text-left p-2">Name</th>
+                        <th className="text-left p-2">PKP Address</th>
+                        <th className="text-left p-2">Next Run</th>
+                        <th className="text-left p-2">Last Run</th>
+                        <th className="text-left p-2">Fail Count</th>
+                        <th className="text-left p-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getAgendaPaginatedJobs().map((job, idx) => (
+                        <tr key={idx} className="border-b border-gray-200 dark:border-gray-800">
+                          <td className="p-2">{job.name}</td>
+                          <td className="p-2">
+                            {job.data?.pkpInfo?.ethAddress ? (
+                              <a
+                                href={`https://basescan.org/address/${job.data.pkpInfo.ethAddress}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-mono"
+                              >
+                                {job.data.pkpInfo.ethAddress.slice(0, 10)}...
+                              </a>
+                            ) : (
+                              '-'
+                            )}
+                          </td>
+                          <td className="p-2">
+                            {job.nextRunAt ? new Date(job.nextRunAt).toLocaleString() : '-'}
+                          </td>
+                          <td className="p-2">
+                            {job.lastRunAt ? new Date(job.lastRunAt).toLocaleString() : '-'}
+                          </td>
+                          <td className="p-2">{job.failCount}</td>
+                          <td className="p-2">
+                            {job.disabled && <span className="text-gray-500">Disabled</span>}
+                            {!job.disabled && job.failCount > 0 && (
+                              <span className="text-red-600 dark:text-red-400">Failed</span>
+                            )}
+                            {!job.disabled && job.failCount === 0 && job.lastFinishedAt && (
+                              <span className="text-green-600 dark:text-green-400">Success</span>
+                            )}
+                            {!job.disabled && !job.lastFinishedAt && (
+                              <span className="text-yellow-600 dark:text-yellow-400">Pending</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <PaginationControls
+                  currentPage={agendaPage}
+                  totalPages={getAgendaTotalPages()}
+                  onPageChange={setAgendaPage}
+                />
+              </div>
+            )}
+
+            {/* Morpho Swaps Tab */}
+            {activeTab === 'morpho' && (
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                  Morpho Swaps (Total: {metrics.morphoSwaps.total})
+                </h2>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-gray-900 dark:text-white">
+                    <thead className="border-b border-gray-200 dark:border-gray-700">
+                      <tr>
+                        <th className="text-left p-2">ID</th>
+                        <th className="text-left p-2">Success</th>
+                        <th className="text-left p-2">PKP Address</th>
+                        <th className="text-left p-2">Top Vault</th>
+                        <th className="text-left p-2">APY</th>
+                        <th className="text-left p-2">Deposits</th>
+                        <th className="text-left p-2">Redeems</th>
+                        <th className="text-left p-2">Token Balances</th>
+                        <th className="text-left p-2">Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getMorphoPaginatedSwaps().map((swap) => (
+                        <tr key={swap.id} className="border-b border-gray-200 dark:border-gray-800">
+                          <td className="p-2 text-xs font-mono">{swap.id.slice(-8)}</td>
+                          <td className="p-2">
+                            {swap.success ? (
+                              <span className="text-green-600 dark:text-green-400">✓</span>
+                            ) : (
+                              <span className="text-red-600 dark:text-red-400">✗</span>
+                            )}
+                          </td>
+                          <td className="p-2 text-xs font-mono">
+                            {swap.pkpAddress?.slice(0, 10)}...
+                          </td>
+                          <td className="p-2 text-sm">{swap.topVault?.name || '-'}</td>
+                          <td className="p-2">
+                            {swap.topVault?.apy ? `${(swap.topVault.apy * 100).toFixed(2)}%` : '-'}
+                          </td>
+                          <td className="p-2">{swap.deposits}</td>
+                          <td className="p-2">{swap.redeems}</td>
+                          <td className="p-2 text-xs">
+                            {swap.userTokenBalances && swap.userTokenBalances.length > 0 ? (
+                              <div className="space-y-1">
+                                {swap.userTokenBalances.map((balance, idx) => (
+                                  <div key={idx} className="text-xs">
+                                    <span className="font-mono text-blue-600 dark:text-blue-400">
+                                      {balance.address.slice(0, 6)}...
+                                    </span>
+                                    <span className="ml-1">
+                                      {formatTokenBalance(balance.balance, balance.decimals)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              '-'
+                            )}
+                          </td>
+                          <td className="p-2 text-xs">
+                            {new Date(swap.createdAt).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <PaginationControls
+                  currentPage={morphoPage}
+                  totalPages={getMorphoTotalPages()}
+                  onPageChange={setMorphoPage}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
