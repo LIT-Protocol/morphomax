@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { ethers } from 'ethers';
 import { env } from '@/config/env';
 
 const { VITE_BACKEND_URL } = env;
@@ -52,6 +53,11 @@ interface MetricsData {
       redeems: number;
       createdAt: string;
       updatedAt: string;
+      userTokenBalances: Array<{
+        address: string;
+        balance: string;
+        decimals: number;
+      }>;
     }>;
   };
 }
@@ -65,6 +71,18 @@ export function Metrics() {
   const [morphoPage, setMorphoPage] = useState(1);
 
   const ITEMS_PER_PAGE = 20;
+
+  // Utility function to format token balance using decimals with ethers
+  const formatTokenBalance = (balance: string, decimals: number): string => {
+    try {
+      const formatted = ethers.utils.formatUnits(balance, decimals);
+      // Remove trailing zeros after decimal point
+      const num = parseFloat(formatted);
+      return num.toString();
+    } catch {
+      return balance; // Return original if formatting fails
+    }
+  };
 
   const fetchMetrics = useCallback(async () => {
     try {
@@ -314,6 +332,7 @@ export function Metrics() {
                         <th className="text-left p-2">APY</th>
                         <th className="text-left p-2">Deposits</th>
                         <th className="text-left p-2">Redeems</th>
+                        <th className="text-left p-2">Token Balances</th>
                         <th className="text-left p-2">Created</th>
                       </tr>
                     </thead>
@@ -337,6 +356,24 @@ export function Metrics() {
                           </td>
                           <td className="p-2">{swap.deposits}</td>
                           <td className="p-2">{swap.redeems}</td>
+                          <td className="p-2 text-xs">
+                            {swap.userTokenBalances && swap.userTokenBalances.length > 0 ? (
+                              <div className="space-y-1">
+                                {swap.userTokenBalances.map((balance, idx) => (
+                                  <div key={idx} className="text-xs">
+                                    <span className="font-mono text-blue-600 dark:text-blue-400">
+                                      {balance.address.slice(0, 6)}...
+                                    </span>
+                                    <span className="ml-1">
+                                      {formatTokenBalance(balance.balance, balance.decimals)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              '-'
+                            )}
+                          </td>
                           <td className="p-2 text-xs">
                             {new Date(swap.createdAt).toLocaleString()}
                           </td>

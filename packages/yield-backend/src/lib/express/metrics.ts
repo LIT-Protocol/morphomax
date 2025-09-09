@@ -173,6 +173,7 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
               }
             : null,
           updatedAt: swap.updatedAt,
+          userTokenBalances: swap.userTokenBalances || [],
         })),
         total: totalMorphoSwaps,
         totalPages: Math.ceil(totalMorphoSwaps / itemsPerPage),
