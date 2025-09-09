@@ -22,7 +22,11 @@ interface MetricsData {
       failedAt: string | null;
       disabled: boolean;
       repeatInterval: string | null;
-      data: Record<string, unknown> | null;
+      data: {
+        pkpInfo?: {
+          ethAddress?: string;
+        };
+      } | null;
     }>;
   };
   morphoSwaps: {
