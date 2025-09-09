@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { env } from '@/config/env';
 
@@ -7,6 +7,9 @@ const { VITE_BACKEND_URL } = env;
 interface MetricsData {
   agendaJobs: {
     total: number;
+    page: number;
+    itemsPerPage: number;
+    totalPages: number;
     byStatus: {
       completed: number;
       failed: number;
@@ -31,6 +34,9 @@ interface MetricsData {
   };
   morphoSwaps: {
     total: number;
+    page: number;
+    itemsPerPage: number;
+    totalPages: number;
     recent: Array<{
       id: string;
       scheduleId: string;
@@ -55,41 +61,106 @@ export function Metrics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'agenda' | 'morpho'>('agenda');
+  const [agendaPage, setAgendaPage] = useState(1);
+  const [morphoPage, setMorphoPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 20;
+
+  const fetchMetrics = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        agendaPage: agendaPage.toString(),
+        morphoPage: morphoPage.toString(),
+        itemsPerPage: ITEMS_PER_PAGE.toString(),
+      });
+
+      const response = await fetch(`${VITE_BACKEND_URL}/metrics?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Metrics data received:', data);
+      console.log('Agenda jobs count:', data.agendaJobs?.total);
+      console.log('Morpho swaps count:', data.morphoSwaps?.total);
+      setMetrics(data);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch metrics:', err);
+      setError('Failed to load metrics data');
+    } finally {
+      setLoading(false);
+    }
+  }, [agendaPage, morphoPage]);
 
   useEffect(() => {
-    async function fetchMetrics() {
-      try {
-        setLoading(true);
-        const response = await fetch(`${VITE_BACKEND_URL}/metrics`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Metrics data received:', data);
-        console.log('Agenda jobs count:', data.agendaJobs?.total);
-        console.log('Morpho swaps count:', data.morphoSwaps?.total);
-        setMetrics(data);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch metrics:', err);
-        setError('Failed to load metrics data');
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchMetrics();
     // Refresh every 30 seconds
     const interval = setInterval(fetchMetrics, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchMetrics]);
+
+  // Since we're now using server-side pagination, we just return the data as-is
+  const getAgendaPaginatedJobs = () => {
+    if (!metrics) return [];
+    return metrics.agendaJobs.jobs;
+  };
+
+  const getMorphoPaginatedSwaps = () => {
+    if (!metrics) return [];
+    return metrics.morphoSwaps.recent;
+  };
+
+  const getAgendaTotalPages = () => {
+    if (!metrics) return 0;
+    return metrics.agendaJobs.totalPages;
+  };
+
+  const getMorphoTotalPages = () => {
+    if (!metrics) return 0;
+    return metrics.morphoSwaps.totalPages;
+  };
+
+  const PaginationControls = ({
+    currentPage,
+    totalPages,
+    onPageChange,
+  }: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }) => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-4">
+        <button
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300"
+        >
+          Previous
+        </button>
+        <span className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300"
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative z-10">
@@ -179,7 +250,7 @@ export function Metrics() {
                       </tr>
                     </thead>
                     <tbody>
-                      {metrics.agendaJobs.jobs.map((job, idx) => (
+                      {getAgendaPaginatedJobs().map((job, idx) => (
                         <tr key={idx} className="border-b border-gray-200 dark:border-gray-800">
                           <td className="p-2">{job.name}</td>
                           <td className="p-2">
@@ -220,6 +291,11 @@ export function Metrics() {
                     </tbody>
                   </table>
                 </div>
+                <PaginationControls
+                  currentPage={agendaPage}
+                  totalPages={getAgendaTotalPages()}
+                  onPageChange={setAgendaPage}
+                />
               </div>
             )}
 
@@ -245,7 +321,7 @@ export function Metrics() {
                       </tr>
                     </thead>
                     <tbody>
-                      {metrics.morphoSwaps.recent.map((swap) => (
+                      {getMorphoPaginatedSwaps().map((swap) => (
                         <tr key={swap.id} className="border-b border-gray-200 dark:border-gray-800">
                           <td className="p-2 text-xs font-mono">{swap.id.slice(-8)}</td>
                           <td className="p-2">
@@ -272,6 +348,11 @@ export function Metrics() {
                     </tbody>
                   </table>
                 </div>
+                <PaginationControls
+                  currentPage={morphoPage}
+                  totalPages={getMorphoTotalPages()}
+                  onPageChange={setMorphoPage}
+                />
               </div>
             )}
           </div>

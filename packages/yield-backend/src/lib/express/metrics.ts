@@ -8,26 +8,67 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
   try {
     serviceLogger.info('Fetching metrics data');
 
+    if (!mongoose.connection.db) {
+      serviceLogger.error('MongoDB connection not found');
+      res.status(500).json({ error: 'MongoDB connection not found' });
+      return;
+    }
+
+    // Parse pagination parameters from query string
+    const agendaPage = parseInt(req.query.agendaPage as string, 10) || 1;
+    const morphoPage = parseInt(req.query.morphoPage as string, 10) || 1;
+    const itemsPerPage = parseInt(req.query.itemsPerPage as string, 10) || 20;
+
     // Get agenda jobs directly from MongoDB collection
     let agendaJobs: any[] = [];
+    let totalAgendaJobs = 0;
     try {
       const agendaCollection = mongoose.connection.db.collection('agendaJobs');
-      agendaJobs = await agendaCollection.find({}).toArray();
-      serviceLogger.info(`Found ${agendaJobs.length} agenda jobs`);
+
+      // Get total count
+      totalAgendaJobs = await agendaCollection.countDocuments({});
+
+      // Get paginated agenda jobs
+      const agendaSkip = (agendaPage - 1) * itemsPerPage;
+      agendaJobs = await agendaCollection.find({}).skip(agendaSkip).limit(itemsPerPage).toArray();
+
+      serviceLogger.info(
+        `Found ${agendaJobs.length} agenda jobs (page ${agendaPage}, total: ${totalAgendaJobs})`
+      );
     } catch (agendaError) {
       serviceLogger.warn('Failed to fetch agenda jobs:', agendaError);
     }
 
-    // Get morphoswaps (YieldSwap collection)
-    const morphoSwaps = await YieldSwap.find({}).sort({ createdAt: -1 }).limit(100).lean();
+    // Get total morpho swaps count
+    const totalMorphoSwaps = await YieldSwap.countDocuments();
+
+    // Get paginated morphoswaps (YieldSwap collection)
+    const morphoSkip = (morphoPage - 1) * itemsPerPage;
+    const morphoSwaps = await YieldSwap.find({})
+      .sort({ createdAt: -1 })
+      .skip(morphoSkip)
+      .limit(itemsPerPage)
+      .lean();
+
+    // Calculate status counts from ALL agenda jobs (not just current page)
+    let allAgendaJobsForStats: any[] = [];
+    try {
+      const agendaCollection = mongoose.connection.db.collection('agendaJobs');
+      allAgendaJobsForStats = await agendaCollection.find({}).toArray();
+    } catch (error) {
+      serviceLogger.warn('Failed to fetch all agenda jobs for stats:', error);
+    }
 
     const metrics = {
       agendaJobs: {
+        itemsPerPage,
         byStatus: {
-          completed: agendaJobs.filter((job) => job.lastFinishedAt).length,
-          failed: agendaJobs.filter((job) => job.failCount > 0).length,
-          running: agendaJobs.filter((job) => job.lockedAt && !job.lastFinishedAt).length,
-          scheduled: agendaJobs.filter((job) => job.nextRunAt && !job.lastFinishedAt).length,
+          completed: allAgendaJobsForStats.filter((job) => job.lastFinishedAt).length,
+          failed: allAgendaJobsForStats.filter((job) => job.failCount > 0).length,
+          running: allAgendaJobsForStats.filter((job) => job.lockedAt && !job.lastFinishedAt)
+            .length,
+          scheduled: allAgendaJobsForStats.filter((job) => job.nextRunAt && !job.lastFinishedAt)
+            .length,
         },
         jobs: agendaJobs.map((job) => ({
           data: job.data,
@@ -40,13 +81,17 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
           nextRunAt: job.nextRunAt,
           repeatInterval: job.repeatInterval,
         })),
-        total: agendaJobs.length,
+        page: agendaPage,
+        total: totalAgendaJobs,
+        totalPages: Math.ceil(totalAgendaJobs / itemsPerPage),
       },
       morphoSwaps: {
         recent: morphoSwaps.map((swap) => ({
+          itemsPerPage,
           createdAt: swap.createdAt,
           deposits: swap.deposits?.length || 0,
           id: swap._id,
+          page: morphoPage,
           pkpAddress: swap.pkpInfo?.ethAddress,
           redeems: swap.redeems?.length || 0,
           scheduleId: swap.scheduleId,
@@ -61,7 +106,8 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
             : null,
           updatedAt: swap.updatedAt,
         })),
-        total: await YieldSwap.countDocuments(),
+        total: totalMorphoSwaps,
+        totalPages: Math.ceil(totalMorphoSwaps / itemsPerPage),
       },
     };
 
