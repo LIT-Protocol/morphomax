@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/node';
 import cors from 'cors';
 import express, { Express, NextFunction, Request, Response } from 'express';
+import helmet from 'helmet';
 
 import { createVincentUserMiddleware } from '@lit-protocol/vincent-app-sdk/expressMiddleware';
 import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
@@ -50,6 +51,7 @@ const setSentryUserMiddleware = handler(
 );
 
 export const registerRoutes = (app: Express) => {
+  app.use(helmet());
   app.use(express.json());
 
   if (IS_DEVELOPMENT) {
