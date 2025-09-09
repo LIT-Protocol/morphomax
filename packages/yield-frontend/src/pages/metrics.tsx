@@ -26,8 +26,8 @@ interface MetricsData {
       disabled: boolean;
       repeatInterval: string | null;
       data: {
-        pkpInfo?: {
-          ethAddress?: string;
+        pkpInfo: {
+          ethAddress: string;
         };
       } | null;
     }>;

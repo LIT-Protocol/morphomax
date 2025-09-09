@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 
@@ -37,6 +38,13 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
       );
     } catch (agendaError) {
       serviceLogger.warn('Failed to fetch agenda jobs:', agendaError);
+      Sentry.captureException(agendaError, {
+        extra: {
+          agendaPage,
+          itemsPerPage,
+          context: 'metrics_fetch_agenda_jobs',
+        },
+      });
     }
 
     // Get total morpho swaps count
