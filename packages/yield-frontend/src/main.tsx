@@ -15,14 +15,17 @@ initializeTheme();
 // Initialize Zendesk support widget
 initZendesk();
 
-const { VITE_IS_DEVELOPMENT, VITE_SENTRY_DSN } = env;
+const { VITE_BACKEND_URL, VITE_IS_DEVELOPMENT, VITE_SENTRY_DSN } = env;
 
 if (VITE_SENTRY_DSN) {
   Sentry.init({
     dsn: VITE_SENTRY_DSN,
     enabled: !VITE_IS_DEVELOPMENT,
     sendDefaultPii: true,
+    tracesSampleRate: 1.0,
+    tracePropagationTargets: [VITE_BACKEND_URL],
     integrations: [
+      Sentry.browserTracingIntegration(),
       Sentry.thirdPartyErrorFilterIntegration({
         behaviour: 'drop-error-if-contains-third-party-frames',
         filterKeys: ['vincent-yield-frontend'],
