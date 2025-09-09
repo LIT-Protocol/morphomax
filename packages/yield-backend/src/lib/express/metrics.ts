@@ -157,10 +157,10 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
         recent: morphoSwaps.map((swap) => ({
           itemsPerPage,
           createdAt: swap.createdAt,
-          deposits: swap.deposits?.length || 0,
+          deposits: swap.deposits.length,
           id: swap._id,
           page: morphoPage,
-          pkpAddress: swap.pkpInfo?.ethAddress,
+          pkpAddress: swap.pkpInfo.ethAddress,
           redeems: swap.redeems?.length || 0,
           scheduleId: swap.scheduleId,
           success: swap.success,
