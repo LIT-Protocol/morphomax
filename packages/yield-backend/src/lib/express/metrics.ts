@@ -18,7 +18,7 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
     // Parse pagination parameters from query string
     const agendaPage = parseInt(req.query.agendaPage as string, 10) || 1;
     const morphoPage = parseInt(req.query.morphoPage as string, 10) || 1;
-    const itemsPerPage = parseInt(req.query.itemsPerPage as string, 10) || 20;
+    const itemsPerPage = Math.max(parseInt(req.query.itemsPerPage as string, 10), 20);
 
     // Get agenda jobs directly from MongoDB collection
     let agendaJobs: any[] = [];
