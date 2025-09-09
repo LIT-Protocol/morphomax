@@ -58,26 +58,86 @@ export const handleGetMetricsRoute = async (req: Request, res: Response) => {
       .limit(itemsPerPage)
       .lean();
 
-    // Calculate status counts from ALL agenda jobs (not just current page)
-    let allAgendaJobsForStats: any[] = [];
+    // Calculate status counts efficiently using aggregation
+    let statusCounts: { completed: number; failed: number; running: number; scheduled: number } = {
+      completed: 0,
+      failed: 0,
+      running: 0,
+      scheduled: 0,
+    };
+
     try {
       const agendaCollection = mongoose.connection.db.collection('agendaJobs');
-      allAgendaJobsForStats = await agendaCollection.find({}).toArray();
+
+      // Use aggregation pipeline to count each status efficiently
+      const statusAggregation = (await agendaCollection
+        .aggregate([
+          {
+            $group: {
+              _id: null,
+              completed: {
+                $sum: {
+                  $cond: [{ $ne: ['$lastFinishedAt', null] }, 1, 0],
+                },
+              },
+              failed: {
+                $sum: {
+                  $cond: [{ $gt: [{ $ifNull: ['$failCount', 0] }, 0] }, 1, 0],
+                },
+              },
+              running: {
+                $sum: {
+                  $cond: [
+                    {
+                      $and: [{ $ne: ['$lockedAt', null] }, { $eq: ['$lastFinishedAt', null] }],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+              scheduled: {
+                $sum: {
+                  $cond: [
+                    {
+                      $and: [{ $ne: ['$nextRunAt', null] }, { $eq: ['$lastFinishedAt', null] }],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+        ])
+        .toArray()) as Array<{
+        _id: null;
+        completed: number;
+        failed: number;
+        running: number;
+        scheduled: number;
+      }>;
+
+      const [first] = statusAggregation;
+      if (first) {
+        const { completed, failed, running, scheduled } = first;
+        statusCounts = { completed, failed, running, scheduled };
+      }
+
+      serviceLogger.info('Calculated agenda job status counts:', statusCounts);
     } catch (error) {
-      serviceLogger.warn('Failed to fetch all agenda jobs for stats:', error);
+      serviceLogger.warn('Failed to fetch agenda job status counts:', error);
+      Sentry.captureException(error, {
+        extra: {
+          context: 'metrics_fetch_agenda_status_counts',
+        },
+      });
     }
 
     const metrics = {
       agendaJobs: {
         itemsPerPage,
-        byStatus: {
-          completed: allAgendaJobsForStats.filter((job) => job.lastFinishedAt).length,
-          failed: allAgendaJobsForStats.filter((job) => job.failCount > 0).length,
-          running: allAgendaJobsForStats.filter((job) => job.lockedAt && !job.lastFinishedAt)
-            .length,
-          scheduled: allAgendaJobsForStats.filter((job) => job.nextRunAt && !job.lastFinishedAt)
-            .length,
-        },
+        byStatus: statusCounts,
         jobs: agendaJobs.map((job) => ({
           data: job.data,
           disabled: job.disabled || false,
