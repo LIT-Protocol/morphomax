@@ -90,7 +90,36 @@ export const registerRoutes = (app: Express) => {
   app.get('/swap', middleware, setSentryUserMiddleware, handler(handleListSwapsRoute));
 
   // Galxe
-  app.get('/galxe/balances', handleGetScheduleBalancesRouteForGalxe);
+  app.get(
+    '/galxe/balances',
+    (req: Request, res: Response, next: NextFunction) => {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        res.status(401).json({ error: 'No token provided' });
+        return;
+      }
+
+      const parts = authHeader.split(' ');
+      if (parts.length !== 2) {
+        res.status(401).json({ error: `Invalid authorization header - expected "Bearer <token>"` });
+        return;
+      }
+
+      const [scheme, token] = parts;
+      if (!/^Bearer$/i.test(scheme)) {
+        res.status(401).json({ error: `Expected "Bearer" scheme, got "${scheme}"` });
+        return;
+      }
+
+      if (token !== env.GALXE_API_KEY) {
+        res.status(401).json({ error: `Invalid authorization header - Authentication failed` });
+        return;
+      }
+
+      next();
+    },
+    handleGetScheduleBalancesRouteForGalxe
+  );
 
   // Errors
   app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
