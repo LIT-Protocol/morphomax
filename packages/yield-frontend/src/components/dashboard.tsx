@@ -71,7 +71,7 @@ export const Dashboard: React.FC = () => {
     isLoading: balanceLoading,
     error: balanceError,
     refetch: refetchBalance,
-  } = useFetchUsdcBalance(authInfo?.pkp.ethAddress || '');
+  } = useFetchUsdcBalance();
 
   const currentBalance = parseFloat(balanceFormatted || '0');
   const progressPercentage = (currentBalance / VITE_VINCENT_YIELD_MINIMUM_DEPOSIT) * 100;

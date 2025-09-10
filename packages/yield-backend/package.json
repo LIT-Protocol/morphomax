@@ -69,6 +69,7 @@
     "dataloader": "^2.2.3",
     "did-jwt": "^8.0.9",
     "express": "^5.0.1",
+    "helmet": "^8.1.0",
     "mongoose": "^8.18.0",
     "node-cache": "^5.1.2",
     "semver": "^7.7.2",

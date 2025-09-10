@@ -27,7 +27,6 @@ export const env = createEnv({
     VITE_EXPECTED_AUDIENCE: z.string().default(window.location.origin),
     VITE_IS_DEVELOPMENT: BooleanOrBooleanStringSchema.default(false),
     VITE_REDIRECT_URI: z.string().default(window.location.origin),
-    VITE_VINCENT_BASE_RPC: z.string().default('https://mainnet.base.org'),
     VITE_VINCENT_YIELD_MINIMUM_DEPOSIT: z.coerce.number().default(50),
     VITE_SENTRY_DSN: z.string().optional(),
   },

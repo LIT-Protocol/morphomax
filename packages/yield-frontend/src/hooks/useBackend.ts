@@ -116,6 +116,11 @@ export type Swap = {
   walletAddress: string;
 };
 
+export type Balances = {
+  investedAmountUsdc: string;
+  uninvestedAmountUsdc: string;
+};
+
 export type Strategy = {
   address: string;
   asset: {
@@ -224,6 +229,10 @@ export const useBackend = () => {
     return sendRequest<Schedule[]>('/schedule', 'GET');
   }, [sendRequest]);
 
+  const getScheduleBalances = useCallback(async () => {
+    return sendRequest<Balances>('/schedule/balances', 'GET');
+  }, [sendRequest]);
+
   const getScheduleSwaps = useCallback(
     async (
       scheduleId: string,
@@ -253,6 +262,7 @@ export const useBackend = () => {
     deleteSchedule,
     getOptimalStrategyInfo,
     getSchedules,
+    getScheduleBalances,
     getScheduleSwaps,
     getJwt,
   };
