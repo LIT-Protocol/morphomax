@@ -23,7 +23,13 @@ export const faqData: FAQItem[] = [
     id: 'withdraw-funds',
     question: 'How do I withdraw my funds?',
     answer:
-      '1. Go to <a href="https://dashboard.heyvincent.ai/user/apps" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 underline">https://dashboard.heyvincent.ai/user/apps</a>.\n2. Click on the "Wallet Icon" on the card of the application.\n3. Use WalletConnect or our Withdraw panel to manage your funds. You\'d need gas on the chain for the withdraw transaction.',
+      '1. Go to <a href="https://dashboard.heyvincent.ai/user/apps" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 underline">https://dashboard.heyvincent.ai/user/apps</a>.\n2. Click on the "Wallet Icon" on the card of the application.\n3. Use WalletConnect or our Withdraw panel to manage your funds. You will need gas on the chain that you\'re attempting to withdrawal to.',
+  },
+  {
+    id: 'view-rewards',
+    question: 'How can I view my rewards?',
+    answer:
+      'Your native stablecoin yield will auto-compound into your deposited balance. Rewards associated with the Lit Protocol points campaign will be allocated at a future snapshot and distributed at a later date.',
   },
 ];
 
