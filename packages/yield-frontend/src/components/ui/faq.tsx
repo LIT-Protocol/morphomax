@@ -32,7 +32,7 @@ const WithdrawFundsAnswer: React.FC<{ onImageClick: (imagePath: string) => void 
       </button>
     </div>
     <div>
-      <span className="text-[#FF4205] font-medium">2.</span> Go to the{' '}
+      <span className="text-[#FF4205] font-medium">2.</span> Go to the{'     '}
       <a
         href={`https://dashboard.heyvincent.ai/user/appId/${env.VITE_APP_ID}/wallet`}
         target="_blank"
@@ -42,7 +42,7 @@ const WithdrawFundsAnswer: React.FC<{ onImageClick: (imagePath: string) => void 
         title="Vincent WalletConnect"
       >
         <Info className="w-4 h-4" style={{ position: 'relative', top: '2px' }} />
-        Vincent WalletConnect page
+        <span>Vincent WalletConnect page</span>
       </a>{' '}
       for this app
     </div>
