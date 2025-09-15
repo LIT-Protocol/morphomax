@@ -1,4 +1,5 @@
 import { useCallback, useContext } from 'react';
+import * as Sentry from '@sentry/react';
 
 import { env } from '@/config/env';
 import { JwtContext } from '@/contexts/jwt';
@@ -173,13 +174,21 @@ export const useBackend = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const error = new Error(`HTTP error! status: ${response.status}`);
+        Sentry.captureException(error, {
+          extra: { operation: 'backendPublicQuery', endpoint, status: response.status },
+        });
+        throw error;
       }
 
       const json = (await response.json()) as { data: T; success: boolean };
 
       if (!json.success) {
-        throw new Error(`Backend error: ${json.data}`);
+        const error = new Error(`Backend error: ${json.data}`);
+        Sentry.captureException(error, {
+          extra: { operation: 'backendPublicQuery', endpoint, responseData: json.data },
+        });
+        throw error;
       }
 
       return json.data;
@@ -190,7 +199,11 @@ export const useBackend = () => {
   const sendRequest = useCallback(
     async <T>(endpoint: string, method: HTTPMethod, body?: unknown): Promise<T> => {
       if (!authInfo?.jwt) {
-        throw new Error('No JWT to query backend');
+        const error = new Error('No JWT to query backend');
+        Sentry.captureException(error, {
+          extra: { operation: 'backendJWTQuery', endpoint, method },
+        });
+        throw error;
       }
 
       const headers: HeadersInit = {
@@ -207,13 +220,21 @@ export const useBackend = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const error = new Error(`HTTP error! status: ${response.status}`);
+        Sentry.captureException(error, {
+          extra: { operation: 'backendJWTQuery', endpoint, method, status: response.status },
+        });
+        throw error;
       }
 
       const json = (await response.json()) as { data: T; success: boolean };
 
       if (!json.success) {
-        throw new Error(`Backend error: ${json.data}`);
+        const error = new Error(`Backend error: ${json.data}`);
+        Sentry.captureException(error, {
+          extra: { operation: 'backendJWTQuery', endpoint, method, responseData: json.data },
+        });
+        throw error;
       }
 
       return json.data;

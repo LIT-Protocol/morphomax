@@ -2,6 +2,7 @@ import { LIT_EVM_CHAINS } from '@lit-protocol/constants';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { PlusSquare } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 
 import { Box } from '@/components/ui/box';
 import { Button } from '@/components/ui/button';
@@ -135,6 +136,9 @@ export const DialogueScheduleExecutionDetails: React.FC<ScheduleDetailsDialogPro
         setSwaps(swaps);
       } catch (error) {
         console.error('Error fetching swaps:', error);
+        Sentry.captureException(error, {
+          extra: { operation: 'fetchScheduleSwaps', scheduleId: schedule._id },
+        });
       } finally {
         setLoading(false);
       }

@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { JwtContext } from '@/contexts/jwt';
@@ -45,6 +46,9 @@ export const Dashboard: React.FC = () => {
         setHasActiveSchedule(schedulesData.some((s) => !s.disabled));
       } catch (error) {
         console.error('Error checking schedules:', error);
+        Sentry.captureException(error, {
+          extra: { operation: 'checkSchedules' },
+        });
       }
     };
     checkSchedules();
@@ -59,6 +63,9 @@ export const Dashboard: React.FC = () => {
         setYieldData(strategy);
       } catch (error) {
         console.error('Error fetching yield data:', error);
+        Sentry.captureException(error, {
+          extra: { operation: 'fetchYieldData' },
+        });
       } finally {
         setYieldLoading(false);
       }
@@ -97,6 +104,9 @@ export const Dashboard: React.FC = () => {
       }, 2000);
     } catch (error: unknown) {
       console.error('Error creating Schedule:', error);
+      Sentry.captureException(error, {
+        extra: { operation: 'handleActivate' },
+      });
       setActivationError(
         error instanceof Error ? error.message : 'Failed to activate Vincent Yield'
       );
@@ -119,6 +129,9 @@ export const Dashboard: React.FC = () => {
         setHasActiveSchedule(schedulesData.some((s) => !s.disabled));
       } catch (error: unknown) {
         console.error('Error stopping schedule:', error);
+        Sentry.captureException(error, {
+          extra: { operation: 'handleStopSchedule', scheduleId },
+        });
         setActivationError(error instanceof Error ? error.message : 'Failed to stop Vincent Yield');
       } finally {
         setStoppingSchedule(null);

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
+import * as Sentry from '@sentry/react';
 import { env } from '@/config/env';
 
 const { VITE_BACKEND_URL } = env;
@@ -79,7 +80,10 @@ export function Metrics() {
       // Remove trailing zeros after decimal point
       const num = parseFloat(formatted);
       return num.toString();
-    } catch {
+    } catch (error) {
+      Sentry.captureException(error, {
+        extra: { operation: 'formatTokenBalance', balance, decimals },
+      });
       return balance; // Return original if formatting fails
     }
   };
@@ -112,6 +116,9 @@ export function Metrics() {
       setError(null);
     } catch (err) {
       console.error('Failed to fetch metrics:', err);
+      Sentry.captureException(err, {
+        extra: { operation: 'fetchMetrics', agendaPage, morphoPage },
+      });
       setError('Failed to load metrics data');
     } finally {
       setLoading(false);

@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import * as Sentry from '@sentry/react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,9 @@ export const DialogueStop: React.FC<ScheduleDetailsDialogProps> = ({ schedule, o
         await deleteSchedule(schedule._id);
       } catch (error) {
         console.error('Error deleting Schedule:', error);
+        Sentry.captureException(error, {
+          extra: { operation: 'deleteSchedule', scheduleId: schedule._id },
+        });
         alert('Error deleting Schedule. Please try again.');
       } finally {
         setLoading(false);

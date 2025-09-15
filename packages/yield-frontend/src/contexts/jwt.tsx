@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useState, useEffect, ReactNode } from 'react';
 import { IRelayPKP } from '@lit-protocol/types';
 import * as jwt from '@lit-protocol/vincent-app-sdk/jwt';
+import * as Sentry from '@sentry/react';
 
 const { verifyVincentAppUserJWT } = jwt;
 
@@ -65,6 +66,9 @@ export const JwtProvider: React.FC<JwtProviderProps> = ({ children }) => {
         }
       } catch (e) {
         console.error('Error decoding JWT:', e);
+        Sentry.captureException(e, {
+          extra: { operation: 'decodeVincentJWT' },
+        });
         logOut();
         return;
       }
@@ -84,6 +88,9 @@ export const JwtProvider: React.FC<JwtProviderProps> = ({ children }) => {
         });
       } catch (error: unknown) {
         console.error(`Error verifying existing JWT. Need to relogin: ${(error as Error).message}`);
+        Sentry.captureException(error, {
+          extra: { operation: 'verifyExistingJWT' },
+        });
         logOut();
       }
     }
@@ -92,8 +99,12 @@ export const JwtProvider: React.FC<JwtProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleConnectFailure = (e: unknown) => {
       console.error('Error logging in:', e);
+      Sentry.captureException(e, {
+        extra: { operation: 'handleConnectFailure' },
+      });
       logOut();
     };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     logWithJwt().catch(handleConnectFailure);
   }, [logWithJwt, logOut]);
 
