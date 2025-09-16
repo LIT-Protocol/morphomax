@@ -3,7 +3,7 @@ import consola from 'consola';
 
 import { env } from '../env';
 
-const { MONGODB_URI } = env;
+const { AGENDA_DEFAULT_CONCURRENCY, AGENDA_DEFAULT_LOCKLIMIT, MONGODB_URI } = env;
 
 const agendaLogger = consola.withTag('agenda');
 
@@ -12,10 +12,10 @@ const defaultConfig = {
     address: MONGODB_URI,
     collection: 'agendaJobs',
   },
-  defaultConcurrency: 1,
+  defaultConcurrency: AGENDA_DEFAULT_CONCURRENCY,
   defaultLockLifetime: 2 * 60 * 1000, // 2 minutes default lock time
-  defaultLockLimit: 1,
-  maxConcurrency: 1,
+  defaultLockLimit: AGENDA_DEFAULT_LOCKLIMIT,
+  maxConcurrency: AGENDA_DEFAULT_CONCURRENCY,
   processInterval: '10 seconds',
 };
 

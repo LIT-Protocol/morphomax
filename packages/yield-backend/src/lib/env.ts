@@ -21,6 +21,8 @@ export const env = createEnv({
   emptyStringAsUndefined: true,
   runtimeEnv: process.env,
   server: {
+    AGENDA_DEFAULT_CONCURRENCY: z.coerce.number().default(5),
+    AGENDA_DEFAULT_LOCKLIMIT: z.coerce.number().default(5),
     ALCHEMY_API_KEY: z.string().optional(),
     ALCHEMY_POLICY_ID: z.string().optional(),
     ALLOWED_AUDIENCE: z.string().url(),
