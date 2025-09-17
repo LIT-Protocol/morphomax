@@ -1,8 +1,9 @@
+import * as Sentry from '@sentry/react';
 import React, { createContext, useCallback, useState, useEffect, ReactNode } from 'react';
 import { IRelayPKP } from '@lit-protocol/types';
 import * as jwt from '@lit-protocol/vincent-app-sdk/jwt';
 
-const { verifyVincentAppUserJWT } = jwt;
+const { getAppInfo, getPKPInfo, verifyVincentAppUserJWT } = jwt;
 
 import { env } from '@/config/env';
 import { useVincentWebAuthClient } from '@/hooks/useVincentWebAuthClient';
@@ -38,7 +39,9 @@ export const JwtProvider: React.FC<JwtProviderProps> = ({ children }) => {
   const logOut = useCallback(() => {
     setAuthInfo(null);
     localStorage.removeItem(APP_JWT_KEY);
-  }, []);
+    vincentWebAuthClient.removeVincentJWTFromURI();
+    Sentry.setUser({ app: null, ethAddress: null });
+  }, [vincentWebAuthClient]);
 
   const logWithJwt = useCallback(async () => {
     const existingJwtStr = localStorage.getItem(APP_JWT_KEY);
@@ -58,13 +61,17 @@ export const JwtProvider: React.FC<JwtProviderProps> = ({ children }) => {
             jwt: jwtStr,
             pkp: decodedJWT.payload.pkpInfo,
           });
+          Sentry.setUser({
+            app: getAppInfo(decodedJWT),
+            ethAddress: getPKPInfo(decodedJWT).ethAddress,
+          });
           return;
         } else {
           logOut();
           return;
         }
-      } catch (e) {
-        console.error('Error decoding JWT:', e);
+      } catch (error: unknown) {
+        Sentry.captureException(error);
         logOut();
         return;
       }
@@ -82,20 +89,29 @@ export const JwtProvider: React.FC<JwtProviderProps> = ({ children }) => {
           jwt: existingJwtStr,
           pkp: decodedJWT.payload.pkpInfo,
         });
+        Sentry.setUser({
+          app: getAppInfo(decodedJWT),
+          ethAddress: getPKPInfo(decodedJWT).ethAddress,
+        });
       } catch (error: unknown) {
-        console.error(`Error verifying existing JWT. Need to relogin: ${(error as Error).message}`);
+        Sentry.captureException(error);
         logOut();
       }
     }
   }, [logOut, vincentWebAuthClient]);
 
   useEffect(() => {
-    const handleConnectFailure = (e: unknown) => {
-      console.error('Error logging in:', e);
+    const handleConnectFailure = (error: unknown) => {
+      Sentry.captureException(error);
       logOut();
     };
-    logWithJwt().catch(handleConnectFailure);
-  }, [logWithJwt, logOut]);
+    if (!authInfo) {
+      // Schedule asynchronously to avoid any synchronous setState within the effect body,
+      queueMicrotask(() => {
+        logWithJwt().catch(handleConnectFailure);
+      });
+    }
+  }, [authInfo, logWithJwt, logOut]);
 
   return (
     <JwtContext.Provider value={{ authInfo, logWithJwt, logOut }}>{children}</JwtContext.Provider>
