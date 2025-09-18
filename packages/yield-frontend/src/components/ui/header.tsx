@@ -36,6 +36,15 @@ export const Header: React.FC<HeaderProps> = ({ title, isDark, onToggleTheme, ri
           <Button
             variant="secondary-outline"
             size="sm"
+            onClick={() => window.open('https://dashboard.heyvincent.ai/user/apps', '_blank')}
+            className="px-2 sm:px-3"
+            title="Open Vincent Dashboard"
+          >
+            Dashboard
+          </Button>
+          <Button
+            variant="secondary-outline"
+            size="sm"
             onClick={onToggleTheme}
             className="px-2 sm:px-3"
           >
