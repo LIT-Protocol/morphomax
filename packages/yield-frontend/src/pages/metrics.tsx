@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react';
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
@@ -79,7 +80,8 @@ export function Metrics() {
       // Remove trailing zeros after decimal point
       const num = parseFloat(formatted);
       return num.toString();
-    } catch {
+    } catch (error: unknown) {
+      Sentry.captureException(error);
       return balance; // Return original if formatting fails
     }
   };
@@ -110,8 +112,8 @@ export function Metrics() {
       console.log('Morpho swaps count:', data.morphoSwaps?.total);
       setMetrics(data);
       setError(null);
-    } catch (err) {
-      console.error('Failed to fetch metrics:', err);
+    } catch (error: unknown) {
+      Sentry.captureException(error);
       setError('Failed to load metrics data');
     } finally {
       setLoading(false);

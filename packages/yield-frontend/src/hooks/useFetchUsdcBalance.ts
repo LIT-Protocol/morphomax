@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react';
 import { useState, useCallback, useEffect } from 'react';
 
 import { useBackend } from '@/hooks/useBackend';
@@ -19,6 +20,7 @@ export function useFetchUsdcBalance() {
     } catch (err: unknown) {
       setError((err as Error).message || 'Failed to fetch balance');
       setBalanceFormatted('0.00');
+      Sentry.captureException(err);
     } finally {
       setIsLoading(false);
     }
