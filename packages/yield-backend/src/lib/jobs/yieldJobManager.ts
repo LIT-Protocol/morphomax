@@ -6,6 +6,7 @@ import { mongo } from 'mongoose';
 import { IRelayPKP } from '@lit-protocol/types';
 
 import { AppData, getJobVersion } from './jobVersion';
+import { JobType } from './optimizeYield';
 import * as optimizeYieldJobDef from './optimizeYield';
 import { getAgenda } from '../agenda/agendaClient';
 import { morphoUsdcBalanceMonitor } from '../balanceMonitor';
@@ -118,61 +119,69 @@ export async function listJobsByWalletAddress({ walletAddress }: { walletAddress
   return jobsWithStatus;
 }
 
-export async function cancelJob({ app, pkpInfo, scheduleId }: CancelJobParams) {
+export async function cancelJob({ app, pkpInfo, scheduleId }: CancelJobParams): Promise<boolean> {
   const walletAddress = pkpInfo.ethAddress;
 
   // Idempotent; if a job we're trying to disable doesn't return, it is disabled or does not belong to this wallet.
   const jobs = await findJobs({ scheduleId, walletAddress, mustExist: false });
   const job = jobs[0];
-  if (!job) return null;
+  if (!job) {
+    throw new Error('No job found for this wallet address and schedule id');
+  }
+  if (await job.isRunning()) {
+    throw new Error('Cannot cancel a job while it is running. Wait for it to finish.');
+  }
 
   logger.log(`Disabling Vincent Yield job for ${walletAddress}`);
   job.disable();
   job.attrs.data.updatedAt = new Date();
 
   await job.save();
+  logger.log(`Disabled Vincent Yield job for ${walletAddress}`);
 
-  if (job) {
-    const userVaultPositions = await morphoUsdcBalanceMonitor.getUserPositions(pkpInfo.ethAddress);
-    const allRedeems = await redeemVaults({
-      app,
-      pkpInfo,
-      userVaultPositions,
-      provider: baseProvider,
-    });
-    const redeems = allRedeems.filter((redeem) => {
-      if (redeem.status !== 'success') {
-        const { error, ...rest } = redeem;
-        Sentry.captureException(error, {
-          extra: {
-            redeem: { ...rest },
-          },
-        });
-        return false;
-      }
-      return true;
-    });
+  const userVaultPositions = await morphoUsdcBalanceMonitor.getUserPositions(pkpInfo.ethAddress);
+  logger.log(`Got user vault positions: ${userVaultPositions}`);
 
-    const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
-    const tokenBalance = await getERC20Balance({
-      ethAddress: pkpInfo.ethAddress,
-      provider: baseProvider,
-      tokenAddress: USDC_ADDRESS,
-    });
+  const allRedeems = await redeemVaults({
+    app,
+    pkpInfo,
+    userVaultPositions,
+    provider: baseProvider,
+  });
+  logger.log(`Redeemed results: ${allRedeems}`);
 
-    const morphoSwap = new YieldSwap({
-      pkpInfo,
-      redeems,
-      scheduleId,
-      userVaultPositions,
-      deposits: [],
-      success: true,
-      userTokenBalance: tokenBalance,
-    });
-    await morphoSwap.save();
-  }
+  const redeems = allRedeems.filter((redeem) => {
+    if (redeem.status !== 'success') {
+      const { error, ...rest } = redeem;
+      Sentry.captureException(error, {
+        extra: {
+          redeem: { ...rest },
+        },
+      });
+      return false;
+    }
+    return true;
+  });
 
-  return job;
+  const { USDC_ADDRESS } = getAddressesByChainId(baseProvider.network.chainId);
+  const tokenBalance = await getERC20Balance({
+    ethAddress: pkpInfo.ethAddress,
+    provider: baseProvider,
+    tokenAddress: USDC_ADDRESS,
+  });
+
+  const morphoSwap = new YieldSwap({
+    pkpInfo,
+    redeems,
+    scheduleId,
+    userVaultPositions,
+    deposits: [],
+    success: true,
+    userTokenBalance: tokenBalance,
+  });
+  await morphoSwap.save();
+
+  return true;
 }
 
 export async function createJob(
@@ -181,7 +190,7 @@ export async function createJob(
     interval?: string;
     schedule?: string;
   } = {}
-) {
+): Promise<JobType> {
   const agenda = getAgenda();
   const walletAddress = data.pkpInfo.ethAddress;
 
@@ -191,6 +200,7 @@ export async function createJob(
   const jobs = await findJobs({ walletAddress, mustExist: false });
   let job = jobs[0];
   if (!job) {
+    logger.log('Creating Vincent Yield job for', walletAddress);
     job = agenda.create<optimizeYieldJobDef.JobParams>(optimizeYieldJobDef.jobName, {
       ...data,
       jobVersion: getJobVersion(data.app.version),
@@ -200,8 +210,13 @@ export async function createJob(
     // Currently we only allow a single Vincent Yield per walletAddress
     job.unique({ 'data.pkpInfo.ethAddress': walletAddress });
   } else {
-    // Job was already created, reset schedule to run now
     resetSchedule = true;
+  }
+
+  if (await job.isRunning()) {
+    throw new Error(
+      'Jobs is already created and running. Wait for it to finish to rerun or cancel it.'
+    );
   }
 
   // Schedule the job based on provided options
@@ -221,7 +236,20 @@ export async function createJob(
   await job.save();
   logger.log(`Created Vincent Yield job ${job.attrs._id}`);
 
-  if (resetSchedule) job.run();
+  if (resetSchedule)
+    job.run().catch((error) =>
+      Sentry.captureException(error, {
+        extra: {
+          data,
+          resetSchedule,
+          walletAddress,
+          job: {
+            data: job.attrs.data,
+            id: job.attrs._id,
+          },
+        },
+      })
+    );
 
   return job;
 }

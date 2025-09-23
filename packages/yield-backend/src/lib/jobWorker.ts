@@ -28,7 +28,7 @@ export async function startWorker() {
       try {
         await optimizeYieldJobDef.processJob(job, scope);
       } catch (err) {
-        Sentry.captureException(err);
+        scope.captureException(err);
         const error = err as Error;
         // If we get an error we know is non-transient (the user must fix the state), disable the job
         // The user can re-enable it after resolving the fatal error.
