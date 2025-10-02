@@ -13,7 +13,7 @@ export function getJobVersion(appVersion: number): string {
   return '1.0.0';
 }
 
-export function assertJobVersion(appVersion: number, userPermittedVersion: number): number {
+export function assertPermittedVersion(appVersion: number, userPermittedVersion: number): number {
   const appJobVersion = getJobVersion(appVersion);
   const userPermittedJobVersion = getJobVersion(userPermittedVersion);
 

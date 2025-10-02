@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react';
 import { LIT_EVM_CHAINS } from '@lit-protocol/constants';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -133,8 +134,8 @@ export const DialogueScheduleExecutionDetails: React.FC<ScheduleDetailsDialogPro
         setLoading(true);
         const swaps = await getScheduleSwaps(schedule._id);
         setSwaps(swaps);
-      } catch (error) {
-        console.error('Error fetching swaps:', error);
+      } catch (error: unknown) {
+        Sentry.captureException(error);
       } finally {
         setLoading(false);
       }

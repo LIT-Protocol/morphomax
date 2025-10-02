@@ -5,7 +5,7 @@ import { ethers } from 'ethers';
 
 import { IRelayPKP } from '@lit-protocol/types';
 
-import { type AppData, assertJobVersion } from '../jobVersion';
+import { type AppData, assertPermittedVersion } from '../jobVersion';
 import {
   DepositResult,
   ReedemResult,
@@ -121,19 +121,18 @@ export async function optimizeYield(job: JobType, sentryScope: Sentry.Scope): Pr
     }
 
     // Run the saved version or update to the currently permitted one if version is compatible
-    const jobVersionToRun = assertJobVersion(app.version, userPermittedAppVersion);
-    if (jobVersionToRun !== app.version) {
+    const appVersionToRun = assertPermittedVersion(app.version, userPermittedAppVersion);
+    sentryScope.addBreadcrumb({
+      data: {
+        app,
+        appVersionToRun,
+        userPermittedAppVersion,
+      },
+    });
+    if (appVersionToRun !== app.version) {
       // User updated the permitted app version after creating the job, so we need to update it
-      sentryScope.addBreadcrumb({
-        data: {
-          app,
-          jobVersionToRun,
-          userPermittedAppVersion,
-        },
-        message: `User updated the permitted app version after creating the job`,
-      });
       // eslint-disable-next-line no-param-reassign
-      job.attrs.data.app = { ...job.attrs.data.app, version: jobVersionToRun };
+      job.attrs.data.app = { ...job.attrs.data.app, version: appVersionToRun };
       await job.save();
     }
 
@@ -248,7 +247,7 @@ export async function optimizeYield(job: JobType, sentryScope: Sentry.Scope): Pr
 
     consola.debug(`Successfully optimized Morpho positions for ${pkpInfo.ethAddress}`);
   } catch (e) {
-    // Catch-and-rethrow is usually an anti-pattern, but Agenda doesn't log failed job reasons to console
+    // Catch-and-rethrow is usually an antipattern, but Agenda doesn't log failed job reasons to console
     // so this is our chance to log the job failure details using Consola before we throw the error
     // to Agenda, which will write the failure reason to the Agenda job document in Mongo
     const err = normalizeError(e);
