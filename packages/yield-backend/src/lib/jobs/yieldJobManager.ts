@@ -211,12 +211,12 @@ export async function createJob(
     job.unique({ 'data.pkpInfo.ethAddress': walletAddress });
   } else {
     resetSchedule = true;
-  }
 
-  if (await job.isRunning()) {
-    throw new Error(
-      'Jobs is already created and running. Wait for it to finish to rerun or cancel it.'
-    );
+    if (await job.isRunning()) {
+      throw new Error(
+        'Job is already created and running. Wait for it to finish to rerun or cancel it.'
+      );
+    }
   }
 
   // Schedule the job based on provided options
