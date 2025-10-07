@@ -6,6 +6,7 @@ import { theme } from '@/components/theme';
 import { Footer } from '@/components/ui/footer';
 import { Header } from '@/components/ui/header';
 import { PageHeader } from '@/components/ui/page-header';
+import { TotalDeposits } from '@/components/ui/total-deposits';
 import { useTheme } from '@/components/shared/useTheme';
 import { Button } from '@/components/ui/button';
 import { FAQ, faqData } from '@/components/ui/faq';
@@ -34,11 +35,13 @@ export const Presentation: React.FC = () => {
             description="This agent intelligently auto-rotates your stablecoins into top yield opportunities on Morpho to maximize your returns."
             size="lg"
           />
+        </div>
 
+        <TotalDeposits />
+
+        <div className={`px-3 sm:px-6 pt-4 pb-3 border-b ${theme.cardBorder}`}>
           {/* Current optimal strategy */}
-          <div className="mt-4">
-            <OptimalStrategyInfo />
-          </div>
+          <OptimalStrategyInfo />
         </div>
 
         <div className="flex flex-col items-center py-4 sm:py-5 space-y-3">

@@ -17,6 +17,8 @@ import { ApyDropdown } from '@/components/ApyDropdown';
 import { Balance } from '@/components/ui/balance';
 import { FundsDeployed } from '@/components/ui/funds-deployed';
 import { FAQ, faqData } from '@/components/ui/faq';
+import { TotalDeposits } from '@/components/ui/total-deposits';
+import { EmailForm } from '@/components/EmailForm';
 
 const { VITE_VINCENT_YIELD_MINIMUM_DEPOSIT } = env;
 
@@ -177,6 +179,8 @@ export const Dashboard: React.FC = () => {
           />
         </div>
 
+        <TotalDeposits />
+
         <div className={`px-3 sm:px-6 py-6`}>
           {/* Yield Information */}
           <div className="flex justify-center">
@@ -295,6 +299,7 @@ export const Dashboard: React.FC = () => {
         )}
 
         <FAQ items={faqData} />
+        <EmailForm />
         <Footer />
       </div>
 

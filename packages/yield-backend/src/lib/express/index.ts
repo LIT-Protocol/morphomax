@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { createVincentUserMiddleware } from '@lit-protocol/vincent-app-sdk/expressMiddleware';
 import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
+import { handleSubmitEmailRoute, handleGetEmailRoute } from './emails';
 import { handleGetMetricsRoute } from './metrics';
 import {
   handleCreateScheduleRoute,
@@ -91,6 +92,10 @@ export const registerRoutes = (app: Express) => {
   // Swaps
   app.get('/swap', middleware, setSentryUserMiddleware, handler(handleListSwapsRoute));
 
+  // Emails
+  app.post('/email', middleware, setSentryUserMiddleware, handler(handleSubmitEmailRoute));
+  app.get('/email', middleware, setSentryUserMiddleware, handler(handleGetEmailRoute));
+
   // Galxe
   app.get(
     '/galxe/balances',
@@ -124,7 +129,7 @@ export const registerRoutes = (app: Express) => {
   );
 
   // Errors
-  app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
     serviceLogger.error(err);
     Sentry.captureException(err);
     res.status(500).json({ error: (err as Error).message });
