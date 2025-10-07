@@ -89,10 +89,10 @@ export const EmailForm: React.FC = () => {
         className="w-full flex items-center justify-between text-left hover:opacity-80 transition-opacity"
       >
         <div>
-          <p className="text-white text-sm font-medium mb-1">Want to receive email updates?</p>
+          <p className={`${theme.text} text-sm font-medium mb-1`}>Want to receive email updates?</p>
           {hasExistingEmail && !isExpanded && (
             <p className={`text-xs ${theme.textMuted}`}>
-              Current email: <span className="text-white">{email}</span>
+              Current email: <span className={theme.text}>{email}</span>
             </p>
           )}
         </div>
@@ -107,7 +107,7 @@ export const EmailForm: React.FC = () => {
         <div className="mt-3 space-y-3">
           {hasExistingEmail && (
             <p className={`text-xs ${theme.textMuted}`}>
-              Current email: <span className="text-white">{email}</span>
+              Current email: <span className={theme.text}>{email}</span>
             </p>
           )}
 
@@ -124,6 +124,10 @@ export const EmailForm: React.FC = () => {
                 placeholder="your.email@example.com"
                 disabled={isSubmitting}
                 className="flex-1"
+                style={{
+                  fontFamily:
+                    '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+                }}
               />
               <Button type="submit" disabled={isSubmitting} variant="primary" size="sm">
                 {isSubmitting ? 'Saving...' : hasExistingEmail ? 'Update Email' : 'Save Email'}
