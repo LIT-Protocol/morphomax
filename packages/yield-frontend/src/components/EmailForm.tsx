@@ -124,10 +124,6 @@ export const EmailForm: React.FC = () => {
                 placeholder="your.email@example.com"
                 disabled={isSubmitting}
                 className="flex-1"
-                style={{
-                  fontFamily:
-                    '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
-                }}
               />
               <Button type="submit" disabled={isSubmitting} variant="primary" size="sm">
                 {isSubmitting ? 'Saving...' : hasExistingEmail ? 'Update Email' : 'Save Email'}
