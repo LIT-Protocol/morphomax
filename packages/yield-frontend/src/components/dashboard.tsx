@@ -17,6 +17,7 @@ import { ApyDropdown } from '@/components/ApyDropdown';
 import { Balance } from '@/components/ui/balance';
 import { FundsDeployed } from '@/components/ui/funds-deployed';
 import { FAQ, faqData } from '@/components/ui/faq';
+import { TotalDeposits } from '@/components/ui/total-deposits';
 import { EmailForm } from '@/components/EmailForm';
 
 const { VITE_VINCENT_YIELD_MINIMUM_DEPOSIT } = env;
@@ -178,14 +179,7 @@ export const Dashboard: React.FC = () => {
           />
         </div>
 
-        <div className={`px-3 sm:px-6 py-3 border-b ${theme.cardBorder}`}>
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-widest">
-              Total Deposits:
-            </span>
-            <span className="text-xs font-medium text-white">~350k USDC</span>
-          </div>
-        </div>
+        <TotalDeposits />
 
         <div className={`px-3 sm:px-6 py-6`}>
           {/* Yield Information */}
