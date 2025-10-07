@@ -257,6 +257,17 @@ export const useBackend = () => {
     return sendUnAuthenticatedRequest<Strategy>('/strategy/top', 'GET');
   }, [sendUnAuthenticatedRequest]);
 
+  const submitEmail = useCallback(
+    async (email: string) => {
+      return sendRequest<{ pkpAddress: string; email: string }>('/email', 'POST', { email });
+    },
+    [sendRequest]
+  );
+
+  const getEmail = useCallback(async () => {
+    return sendRequest<{ pkpAddress: string; email: string }>('/email', 'GET');
+  }, [sendRequest]);
+
   return {
     createSchedule,
     deleteSchedule,
@@ -265,5 +276,7 @@ export const useBackend = () => {
     getScheduleBalances,
     getScheduleSwaps,
     getJwt,
+    submitEmail,
+    getEmail,
   };
 };
