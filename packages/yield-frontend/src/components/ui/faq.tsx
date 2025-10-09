@@ -151,21 +151,16 @@ export const FAQ: React.FC<FAQProps> = ({ items }) => {
 
   return (
     <>
-      <div className={`border-t ${theme.cardBorder}`}>
-        <div className={`px-3 sm:px-6 py-3 border-b ${theme.cardBorder}`}>
-          <h3 className={`${theme.text} text-sm font-semibold`}>Frequently Asked Questions</h3>
-        </div>
-        <div className="divide-y divide-gray-200 dark:divide-white/10">
-          {items.map((item) => (
-            <FAQItem
-              key={item.id}
-              item={item}
-              isOpen={openItems.has(item.id)}
-              onToggle={() => toggleItem(item.id)}
-              onImageClick={handleImageClick}
-            />
-          ))}
-        </div>
+      <div className="divide-y divide-gray-200 dark:divide-white/10">
+        {items.map((item) => (
+          <FAQItem
+            key={item.id}
+            item={item}
+            isOpen={openItems.has(item.id)}
+            onToggle={() => toggleItem(item.id)}
+            onImageClick={handleImageClick}
+          />
+        ))}
       </div>
 
       {/* Image Modal */}

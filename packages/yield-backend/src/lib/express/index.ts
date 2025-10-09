@@ -8,6 +8,7 @@ import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk
 
 import { handleSubmitEmailRoute, handleGetEmailRoute } from './emails';
 import { handleGetMetricsRoute } from './metrics';
+import { handleSubmitReferralSourceRoute, handleGetReferralSourceRoute } from './referralSources';
 import {
   handleCreateScheduleRoute,
   handleGetScheduleBalancesRoute,
@@ -95,6 +96,20 @@ export const registerRoutes = (app: Express) => {
   // Emails
   app.post('/email', middleware, setSentryUserMiddleware, handler(handleSubmitEmailRoute));
   app.get('/email', middleware, setSentryUserMiddleware, handler(handleGetEmailRoute));
+
+  // Referral Sources
+  app.post(
+    '/referral-source',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleSubmitReferralSourceRoute)
+  );
+  app.get(
+    '/referral-source',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleGetReferralSourceRoute)
+  );
 
   // Galxe
   app.get(

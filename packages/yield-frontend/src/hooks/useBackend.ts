@@ -268,6 +268,25 @@ export const useBackend = () => {
     return sendRequest<{ pkpAddress: string; email: string }>('/email', 'GET');
   }, [sendRequest]);
 
+  const submitReferralSource = useCallback(
+    async (data: { source: string; otherDetails?: string }) => {
+      return sendRequest<{
+        pkpAddress: string;
+        referralSource: string;
+        referralOtherDetails?: string;
+      }>('/referral-source', 'POST', data);
+    },
+    [sendRequest]
+  );
+
+  const getReferralSource = useCallback(async () => {
+    return sendRequest<{
+      pkpAddress: string;
+      referralSource: string;
+      referralOtherDetails?: string;
+    }>('/referral-source', 'GET');
+  }, [sendRequest]);
+
   return {
     createSchedule,
     deleteSchedule,
@@ -278,5 +297,7 @@ export const useBackend = () => {
     getJwt,
     submitEmail,
     getEmail,
+    submitReferralSource,
+    getReferralSource,
   };
 };
