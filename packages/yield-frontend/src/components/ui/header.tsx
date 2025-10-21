@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ title, isDark, onToggleTheme, ri
   return (
     <div
       className={`px-3 sm:px-6 py-3 border-b ${theme.cardBorder}`}
-      style={{ fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif' }}
+      style={{ fontFamily: '"Poppins", sans-serif' }}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">

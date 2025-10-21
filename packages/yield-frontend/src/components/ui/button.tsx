@@ -90,7 +90,7 @@ export const Button: React.FC<ButtonProps> = ({
   const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${disabledStyles} ${className}`;
 
   const buttonStyle = {
-    fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+    fontFamily: '"Poppins", sans-serif',
     ...getVariantStyles(variant),
     ...style,
   };

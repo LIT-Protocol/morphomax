@@ -67,7 +67,7 @@ export const FundsDeployed: React.FC<FundsDeployedProps> = ({
             <div
               className="font-semibold"
               style={{
-                fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+                fontFamily: '"Poppins", sans-serif',
                 color: 'var(--footer-text-color, #121212)',
                 fontSize: 'clamp(0.875rem, 2.5vw, 1rem)',
               }}
@@ -83,7 +83,7 @@ export const FundsDeployed: React.FC<FundsDeployedProps> = ({
             style={{
               backgroundColor: `${getStatusColor()}20`,
               color: getStatusColor(),
-              fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+              fontFamily: '"Poppins", sans-serif',
             }}
           >
             {status}
@@ -121,7 +121,7 @@ export const FundsDeployed: React.FC<FundsDeployedProps> = ({
         <div
           className="font-bold"
           style={{
-            fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+            fontFamily: '"Poppins", sans-serif',
             color: 'var(--footer-text-color, #121212)',
             fontSize: 'clamp(1rem, 3vw, 1.25rem)',
           }}
@@ -175,8 +175,7 @@ export const FundsDeployed: React.FC<FundsDeployedProps> = ({
                 <h3
                   className={`${theme.text} text-lg font-semibold mb-2`}
                   style={{
-                    fontFamily:
-                      '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+                    fontFamily: '"Poppins", sans-serif',
                   }}
                 >
                   Stop Vincent Yield?

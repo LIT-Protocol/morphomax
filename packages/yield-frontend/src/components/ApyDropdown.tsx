@@ -37,7 +37,7 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
         onClick={() => setIsOpen(!isOpen)}
         className="group relative overflow-hidden rounded-lg border transition-all duration-200 bg-[#E8F5E8] dark:bg-[#0A1F0A] hover:bg-[#D4EDD4] dark:hover:bg-[#0F2A0F]"
         style={{
-          fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+          fontFamily: '"Poppins", sans-serif',
           borderColor: '#228B22',
           padding: 'clamp(0.25rem, 1vw, 0.375rem) clamp(0.5rem, 2vw, 0.75rem)',
         }}
@@ -99,7 +99,7 @@ export const ApyDropdown: React.FC<ApyDropdownProps> = ({ netApy, strategyName }
           <div
             className={`${theme.mainCard} border ${theme.mainCardBorder} rounded-2xl shadow-2xl overflow-hidden`}
             style={{
-              fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+              fontFamily: '"Poppins", sans-serif',
             }}
           >
             <div className="p-4 space-y-4">

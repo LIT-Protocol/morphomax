@@ -28,7 +28,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose, walle
           <h2
             className={`text-lg font-medium ${theme.text} text-center`}
             style={{
-              fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+              fontFamily: '"Poppins", sans-serif',
               color: 'var(--footer-text-color, #121212)',
             }}
           >
@@ -87,7 +87,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose, walle
               }}
               className={`w-1/2 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20`}
               style={{
-                fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+                fontFamily: '"Poppins", sans-serif',
                 color: 'var(--footer-text-color, #121212)',
               }}
             >
@@ -125,7 +125,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose, walle
             onClick={onClose}
             className={`hover:bg-white/10 w-1/2`}
             style={{
-              fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+              fontFamily: '"Poppins", sans-serif',
               color: 'var(--footer-text-color, #121212)',
             }}
           >

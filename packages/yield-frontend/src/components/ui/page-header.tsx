@@ -44,7 +44,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         className="leading-tight text-center"
         style={{
           fontSize: styles.titleSize,
-          fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+          fontFamily: '"Poppins", sans-serif',
           fontWeight: size === 'sm' ? 400 : 500,
           color: 'var(--footer-text-color, #121212)',
         }}
@@ -57,7 +57,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           className={`uppercase tracking-widest text-center mt-1 ${theme.primaryColor}`}
           style={{
             fontSize: styles.subtitleSize,
-            fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+            fontFamily: '"Poppins", sans-serif',
             fontWeight: size === 'sm' ? 400 : 500,
           }}
         >

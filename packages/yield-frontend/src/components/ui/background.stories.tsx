@@ -28,7 +28,7 @@ export const Default: Story = {
           padding: '2rem',
           borderRadius: '1rem',
           textAlign: 'center',
-          fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+          fontFamily: '"Poppins", sans-serif',
         }}
       >
         <h1 style={{ margin: 0, color: '#121212' }}>Background Animation</h1>
@@ -55,7 +55,7 @@ export const DarkMode: Story = {
           padding: '2rem',
           borderRadius: '1rem',
           textAlign: 'center',
-          fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif',
+          fontFamily: '"Poppins", sans-serif',
         }}
       >
         <h1 style={{ margin: 0, color: '#FFFFFF' }}>Background Animation</h1>

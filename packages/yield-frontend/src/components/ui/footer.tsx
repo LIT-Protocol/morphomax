@@ -16,7 +16,7 @@ export const Footer: React.FC = () => {
   return (
     <div
       className={`px-3 sm:px-6 py-3 border-t ${theme.cardBorder} ${theme.cardBg} flex flex-col items-center gap-2 rounded-b-2xl`}
-      style={{ fontFamily: '"ITC Avant Garde Gothic", "Century Gothic", "Avantgarde", sans-serif' }}
+      style={{ fontFamily: '"Poppins", sans-serif' }}
     >
       <div
         className="flex items-center gap-2 text-xs"
