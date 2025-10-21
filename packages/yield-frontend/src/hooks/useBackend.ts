@@ -145,6 +145,19 @@ export type Strategy = {
   whitelisted: boolean;
 };
 
+export type ProfileData = {
+  pkpAddress: string;
+  email?: string;
+  referralSource?: string;
+  referralOtherDetails?: string;
+};
+
+export type ProfileUpdateData = {
+  email?: string;
+  referralSource?: string;
+  referralOtherDetails?: string;
+};
+
 export const useBackend = () => {
   const { authInfo } = useContext(JwtContext);
   const vincentWebAppClient = useVincentWebAuthClient();
@@ -257,15 +270,15 @@ export const useBackend = () => {
     return sendUnAuthenticatedRequest<Strategy>('/strategy/top', 'GET');
   }, [sendUnAuthenticatedRequest]);
 
-  const submitEmail = useCallback(
-    async (email: string) => {
-      return sendRequest<{ pkpAddress: string; email: string }>('/email', 'POST', { email });
+  const updateProfile = useCallback(
+    async (data: ProfileUpdateData) => {
+      return sendRequest<ProfileData>('/profile', 'POST', data);
     },
     [sendRequest]
   );
 
-  const getEmail = useCallback(async () => {
-    return sendRequest<{ pkpAddress: string; email: string }>('/email', 'GET');
+  const getProfile = useCallback(async () => {
+    return sendRequest<ProfileData>('/profile', 'GET');
   }, [sendRequest]);
 
   return {
@@ -276,7 +289,7 @@ export const useBackend = () => {
     getScheduleBalances,
     getScheduleSwaps,
     getJwt,
-    submitEmail,
-    getEmail,
+    updateProfile,
+    getProfile,
   };
 };

@@ -1,6 +1,5 @@
 import * as Sentry from '@sentry/react';
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,21 +13,23 @@ const emailSchema = z
 
 export const EmailForm: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [savedEmail, setSavedEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [hasExistingEmail, setHasExistingEmail] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { submitEmail, getEmail } = useBackend();
+  const { updateProfile, getProfile } = useBackend();
 
-  // Check if user already has an email on mount
+  // Fetch profile on mount
   useEffect(() => {
     const fetchEmail = async () => {
       try {
-        const result = await getEmail();
+        const result = await getProfile();
         if (result?.email) {
           setEmail(result.email);
+          setSavedEmail(result.email);
           setHasExistingEmail(true);
         }
       } catch (error) {
@@ -37,10 +38,12 @@ export const EmailForm: React.FC = () => {
         if (error instanceof Error && !error.message.includes('404')) {
           Sentry.captureException(error);
         }
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchEmail();
-  }, [getEmail]);
+  }, [getProfile]);
 
   const validateEmail = (email: string): boolean => {
     try {
@@ -66,7 +69,8 @@ export const EmailForm: React.FC = () => {
     setMessage(null);
 
     try {
-      await submitEmail(email);
+      await updateProfile({ email });
+      setSavedEmail(email);
       setMessage({ type: 'success', text: 'Email saved successfully!' });
       setHasExistingEmail(true);
       setTimeout(() => setMessage(null), 3000);
@@ -81,71 +85,73 @@ export const EmailForm: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="px-3 sm:px-6 py-4 animate-pulse">
+        <div
+          className={`h-4 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2`}
+        ></div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div
+            className={`h-10 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded flex-1`}
+          ></div>
+          <div
+            className={`h-10 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-full sm:w-20`}
+          ></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`px-3 sm:px-6 py-4 border-t ${theme.cardBorder}`}>
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between text-left hover:opacity-80 transition-opacity"
-      >
-        <div>
-          <p className={`${theme.text} text-sm font-medium mb-1`}>Want to receive email updates?</p>
-          {hasExistingEmail && !isExpanded && (
-            <p className={`text-xs ${theme.textMuted}`}>
-              Current email: <span className={theme.text}>{email}</span>
-            </p>
-          )}
-        </div>
-        {isExpanded ? (
-          <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-        )}
-      </button>
-
-      {isExpanded && (
-        <div className="mt-3 space-y-3">
-          {hasExistingEmail && (
-            <p className={`text-xs ${theme.textMuted}`}>
-              Current email: <span className={theme.text}>{email}</span>
-            </p>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setValidationError(null);
-                }}
-                placeholder="your.email@example.com"
-                disabled={isSubmitting}
-                className="flex-1"
-              />
-              <Button type="submit" disabled={isSubmitting} variant="primary" size="sm">
-                {isSubmitting ? 'Saving...' : hasExistingEmail ? 'Update Email' : 'Save Email'}
-              </Button>
-            </div>
-
-            {validationError && (
-              <div className="text-xs font-medium text-red-500">{validationError}</div>
-            )}
-
-            {message && (
-              <div
-                className={`text-xs font-medium ${
-                  message.type === 'success' ? 'text-green-600' : 'text-red-500'
-                }`}
-              >
-                {message.text}
-              </div>
-            )}
-          </form>
-        </div>
+    <div className="px-3 sm:px-6 py-4">
+      <p className={`${theme.text} text-sm font-medium mb-2`}>
+        Want to receive updates about reward claiming?
+      </p>
+      {hasExistingEmail && (
+        <p className={`text-xs ${theme.textMuted} mb-2`}>
+          Current email: <span className={theme.text}>{savedEmail}</span>
+        </p>
       )}
+      <form onSubmit={handleSubmit} noValidate className="space-y-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setValidationError(null);
+            }}
+            placeholder="your.email@example.com"
+            disabled={isSubmitting}
+            className="flex-1"
+          />
+          <Button
+            type="submit"
+            disabled={isSubmitting || !email.trim()}
+            variant="primary"
+            size="sm"
+            className="w-full sm:w-auto py-1 px-2 text-xs h-auto"
+          >
+            {isSubmitting ? 'Saving...' : hasExistingEmail ? 'Update' : 'Save'}
+          </Button>
+        </div>
+
+        {validationError && (
+          <div className="text-xs font-medium text-red-500">{validationError}</div>
+        )}
+
+        {message && (
+          <div
+            className={`text-xs font-medium ${
+              message.type === 'success' ? 'text-green-600' : 'text-red-500'
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
+      </form>
     </div>
   );
 };

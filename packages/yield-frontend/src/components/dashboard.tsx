@@ -19,6 +19,7 @@ import { FundsDeployed } from '@/components/ui/funds-deployed';
 import { FAQ, faqData } from '@/components/ui/faq';
 import { TotalDeposits } from '@/components/ui/total-deposits';
 import { EmailForm } from '@/components/EmailForm';
+import { ReferralSourceForm } from '@/components/ReferralSourceForm';
 
 const { VITE_VINCENT_YIELD_MINIMUM_DEPOSIT } = env;
 
@@ -39,6 +40,7 @@ export const Dashboard: React.FC = () => {
   const [hasActiveSchedule, setHasActiveSchedule] = useState(false);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const [activeSection, setActiveSection] = useState<'email' | 'faq'>('email');
 
   useEffect(() => {
     const checkSchedules = async () => {
@@ -298,8 +300,39 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <FAQ items={faqData} />
-        <EmailForm />
+        <div className={`border-t ${theme.cardBorder}`}>
+          <div className={`py-3 border-b ${theme.cardBorder}`}>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-3 sm:px-6">
+              <button
+                onClick={() => setActiveSection('email')}
+                className={`text-sm font-semibold transition-colors text-center outline-none focus:outline-none py-1.5 px-3 rounded ${
+                  activeSection === 'email' ? theme.text : theme.textMuted
+                }`}
+              >
+                Stay Connected
+              </button>
+              <span className={theme.textMuted}>|</span>
+              <button
+                onClick={() => setActiveSection('faq')}
+                className={`text-sm font-semibold transition-colors text-center outline-none focus:outline-none py-1.5 px-3 rounded ${
+                  activeSection === 'faq' ? theme.text : theme.textMuted
+                }`}
+              >
+                FAQ
+              </button>
+            </div>
+          </div>
+          {activeSection === 'email' ? (
+            <>
+              <EmailForm />
+              <div className={`border-t ${theme.cardBorder}`}>
+                <ReferralSourceForm />
+              </div>
+            </>
+          ) : (
+            <FAQ items={faqData} />
+          )}
+        </div>
         <Footer />
       </div>
 

@@ -2,10 +2,11 @@
 @import "tw-animate-css";
 
 @font-face {
-    font-family: 'ITC Avant Garde Gothic';
-    src: url('/fonts/itc-avant-garde/medium/ITCAvantGardeStd-Md.ttf') format('truetype');
-    font-weight: 400;
-    font-style: normal;
+  font-family: 'Poppins';
+  src: url('/fonts/poppins/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 @custom-variant dark (&:is(.dark *));

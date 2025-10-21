@@ -6,8 +6,8 @@ import helmet from 'helmet';
 import { createVincentUserMiddleware } from '@lit-protocol/vincent-app-sdk/expressMiddleware';
 import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
-import { handleSubmitEmailRoute, handleGetEmailRoute } from './emails';
 import { handleGetMetricsRoute } from './metrics';
+import { handleUpdateProfileRoute, handleGetProfileRoute } from './profile';
 import {
   handleCreateScheduleRoute,
   handleGetScheduleBalancesRoute,
@@ -92,9 +92,9 @@ export const registerRoutes = (app: Express) => {
   // Swaps
   app.get('/swap', middleware, setSentryUserMiddleware, handler(handleListSwapsRoute));
 
-  // Emails
-  app.post('/email', middleware, setSentryUserMiddleware, handler(handleSubmitEmailRoute));
-  app.get('/email', middleware, setSentryUserMiddleware, handler(handleGetEmailRoute));
+  // Profile
+  app.post('/profile', middleware, setSentryUserMiddleware, handler(handleUpdateProfileRoute));
+  app.get('/profile', middleware, setSentryUserMiddleware, handler(handleGetProfileRoute));
 
   // Galxe
   app.get(

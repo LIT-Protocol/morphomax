@@ -9,7 +9,7 @@ const meta: Meta<typeof PageHeader> = {
     docs: {
       description: {
         component:
-          'A page header component with title, optional subtitle, and description using ITC Avant Garde Gothic font.',
+          'A page header component with title, optional subtitle, and description using Poppins font.',
       },
     },
   },

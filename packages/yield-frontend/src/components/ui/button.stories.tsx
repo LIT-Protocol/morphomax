@@ -9,7 +9,7 @@ const meta: Meta<typeof Button> = {
     docs: {
       description: {
         component:
-          'A versatile button component using ITC Avant Garde Gothic font with multiple variants and sizes.',
+          'A versatile button component using Poppins font with multiple variants and sizes.',
       },
     },
   },
