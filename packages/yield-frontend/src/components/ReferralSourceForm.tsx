@@ -14,30 +14,23 @@ type ReferralSource = {
 
 const MAX_OTHER_LENGTH = 100;
 
-// Cache to prevent refetching on remount
-const referralSourceCache = { hasExistingSource: false, hasFetched: false };
-
 export const ReferralSourceForm: React.FC = () => {
   const [selectedSource, setSelectedSource] = useState<ReferralSource['source'] | null>(null);
   const [otherDetails, setOtherDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [hasExistingSource, setHasExistingSource] = useState(referralSourceCache.hasExistingSource);
+  const [hasExistingSource, setHasExistingSource] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(!referralSourceCache.hasFetched);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { submitReferralSource, getReferralSource } = useBackend();
+  const { updateProfile, getProfile } = useBackend();
 
-  // Check if user already has a referral source on mount (only once globally)
+  // Fetch profile on mount
   useEffect(() => {
-    if (referralSourceCache.hasFetched) return;
-
     const fetchReferralSource = async () => {
-      setIsLoading(true);
       try {
-        const result = await getReferralSource();
+        const result = await getProfile();
         if (result?.referralSource) {
-          referralSourceCache.hasExistingSource = true;
           setHasExistingSource(true);
         }
       } catch (error) {
@@ -47,12 +40,11 @@ export const ReferralSourceForm: React.FC = () => {
           Sentry.captureException(error);
         }
       } finally {
-        referralSourceCache.hasFetched = true;
         setIsLoading(false);
       }
     };
     fetchReferralSource();
-  }, [getReferralSource]);
+  }, [getProfile]);
 
   const validateForm = (): boolean => {
     if (!selectedSource) {
@@ -82,11 +74,10 @@ export const ReferralSourceForm: React.FC = () => {
     setMessage(null);
 
     try {
-      await submitReferralSource({
-        source: selectedSource!,
-        otherDetails: selectedSource === 'Other' ? otherDetails : undefined,
+      await updateProfile({
+        referralSource: selectedSource!,
+        referralOtherDetails: selectedSource === 'Other' ? otherDetails : undefined,
       });
-      referralSourceCache.hasExistingSource = true;
       setMessage({ type: 'success', text: 'Thank you for letting us know!' });
       // Wait 2 seconds before hiding the form
       setTimeout(() => {
@@ -105,7 +96,30 @@ export const ReferralSourceForm: React.FC = () => {
 
   // Don't render if user already submitted
   if (isLoading) {
-    return null;
+    return (
+      <div className="px-3 sm:px-6 py-4 animate-pulse">
+        <div
+          className={`h-4 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-2/3 mb-2`}
+        ></div>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          <div
+            className={`h-8 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-20`}
+          ></div>
+          <div
+            className={`h-8 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-24`}
+          ></div>
+          <div
+            className={`h-8 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-16`}
+          ></div>
+          <div
+            className={`h-8 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-14`}
+          ></div>
+          <div
+            className={`h-8 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-16`}
+          ></div>
+        </div>
+      </div>
+    );
   }
 
   if (hasExistingSource) {

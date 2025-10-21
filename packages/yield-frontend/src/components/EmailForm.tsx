@@ -11,29 +11,23 @@ const emailSchema = z
   .min(1, 'Email is required')
   .email('Please enter a valid email address');
 
-// Cache to prevent refetching on remount
-const emailCache = { email: '', hasExistingEmail: false, hasFetched: false };
-
 export const EmailForm: React.FC = () => {
-  const [email, setEmail] = useState(emailCache.email);
-  const [savedEmail, setSavedEmail] = useState(emailCache.email);
+  const [email, setEmail] = useState('');
+  const [savedEmail, setSavedEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [hasExistingEmail, setHasExistingEmail] = useState(emailCache.hasExistingEmail);
+  const [hasExistingEmail, setHasExistingEmail] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { submitEmail, getEmail } = useBackend();
+  const { updateProfile, getProfile } = useBackend();
 
-  // Check if user already has an email on mount (only once globally)
+  // Fetch profile on mount
   useEffect(() => {
-    if (emailCache.hasFetched) return;
-
     const fetchEmail = async () => {
       try {
-        const result = await getEmail();
+        const result = await getProfile();
         if (result?.email) {
-          emailCache.email = result.email;
-          emailCache.hasExistingEmail = true;
           setEmail(result.email);
           setSavedEmail(result.email);
           setHasExistingEmail(true);
@@ -45,11 +39,11 @@ export const EmailForm: React.FC = () => {
           Sentry.captureException(error);
         }
       } finally {
-        emailCache.hasFetched = true;
+        setIsLoading(false);
       }
     };
     fetchEmail();
-  }, [getEmail]);
+  }, [getProfile]);
 
   const validateEmail = (email: string): boolean => {
     try {
@@ -75,9 +69,7 @@ export const EmailForm: React.FC = () => {
     setMessage(null);
 
     try {
-      await submitEmail(email);
-      emailCache.email = email;
-      emailCache.hasExistingEmail = true;
+      await updateProfile({ email });
       setSavedEmail(email);
       setMessage({ type: 'success', text: 'Email saved successfully!' });
       setHasExistingEmail(true);
@@ -92,6 +84,24 @@ export const EmailForm: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="px-3 sm:px-6 py-4 animate-pulse">
+        <div
+          className={`h-4 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2`}
+        ></div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div
+            className={`h-10 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded flex-1`}
+          ></div>
+          <div
+            className={`h-10 ${theme.cardBorder} bg-gray-300 dark:bg-gray-700 rounded w-full sm:w-20`}
+          ></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-3 sm:px-6 py-4">
