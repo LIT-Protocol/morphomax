@@ -37,7 +37,9 @@ async function main() {
       `Updating job for ${job.attrs.data.pkpInfo.ethAddress} to repeat ${interval} (${currentJob}/${totalJobs})`
     );
 
-    job.repeatEvery(interval);
+    // skipImmediate: true ensures that the job is not run immediately on start, so job run times will still be naturally staggered
+    // by their original creation time
+    job.repeatEvery(interval, { skipImmediate: true });
 
     if (commit) {
       // eslint-disable-next-line no-await-in-loop
