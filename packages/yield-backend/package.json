@@ -20,6 +20,7 @@
     "start": "node ./dist/bin/serverWorker.mjs",
     "startWorker": "node ./dist/bin/jobWorker.mjs",
     "startApiServer": "node ./dist/bin/apiServer.mjs",
+    "changeJobsInterval": "pnpm build && pnpm dotenvx run -- node ./dist/bin/changeJobsInterval.mjs",
     "clean": "pnpm exec rm -Rf node_modules dist",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org lit-protocol-lw --project vincent-yield-backend ./dist && sentry-cli sourcemaps upload --org lit-protocol-lw --project vincent-yield-backend ./dist"
   },
@@ -34,7 +35,8 @@
   "bin": {
     "serverWorker": "./dist/bin/serverWorker.mjs",
     "jobWorker": "./dist/bin/jobWorker.mjs",
-    "apiServer": "./dist/bin/apiServer.mjs"
+    "apiServer": "./dist/bin/apiServer.mjs",
+    "changeJobsInterval": "./dist/bin/changeJobsInterval.mjs"
   },
   "private": true,
   "peerDependencies": {
@@ -86,6 +88,7 @@
     "@types/express": "^5.0.1",
     "@types/jest": "^29.5.14",
     "@types/semver": "^7.7.0",
+    "@types/yargs": "^17.0.33",
     "esbuild": "^0.25.1",
     "ethers": "^5.8.0",
     "graphql": "^16.11.0",
@@ -93,6 +96,7 @@
     "ts-jest": "^29.3.0",
     "tsx": "^4.7.1",
     "unbuild": "^3.6.0",
+    "yargs": "^18.0.0",
     "zod": "^3.25.76"
   }
 }
