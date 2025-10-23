@@ -79,7 +79,7 @@ export const handleCreateScheduleRoute = async (
     },
   });
 
-  const schedule = await createJob({ ...scheduleParams }, { interval: 'daily' });
+  const schedule = await createJob({ ...scheduleParams }, { interval: '1 day' });
   res.status(201).json({ data: schedule.toJson(), success: true });
 };
 

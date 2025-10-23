@@ -4,6 +4,12 @@ import yargs from 'yargs';
 import { createAgenda } from '../lib/agenda/agendaClient';
 import { JobType } from '../lib/jobs/optimizeYield';
 
+const intervalMap = {
+  daily: '1 day',
+  monthly: '1 month',
+  weekly: '1 week',
+};
+
 async function main() {
   const { commit, interval } = yargs(process.argv.slice(2))
     .options({
@@ -14,7 +20,7 @@ async function main() {
         type: 'boolean',
       },
       interval: {
-        choices: ['daily', 'weekly', 'monthly'],
+        choices: Object.keys(intervalMap),
         description: 'How often all jobs should be run.',
         required: true,
         type: 'string',
@@ -40,7 +46,7 @@ async function main() {
 
     // skipImmediate: true ensures that the job is not run immediately on start, so job run times will still be naturally staggered
     // by their original creation time
-    job.repeatEvery(interval, { skipImmediate: true });
+    job.repeatEvery(intervalMap[interval as keyof typeof intervalMap], { skipImmediate: true });
 
     if (!job.attrs.disabled) {
       numEnabled += 1;
