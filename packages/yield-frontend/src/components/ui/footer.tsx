@@ -87,6 +87,15 @@ export const Footer: React.FC = () => {
           <span>Support</span>
         </a>
       </div>
+      <div
+        className="flex items-center gap-2 text-xs"
+        style={{ color: 'var(--footer-text-color, #121212)' }}
+      >
+        By using Vincent Yield, you agree to the
+        <a href="/terms.html" target="_blank" rel="noopener noreferrer">
+          Terms of Service
+        </a>
+      </div>
     </div>
   );
 };
