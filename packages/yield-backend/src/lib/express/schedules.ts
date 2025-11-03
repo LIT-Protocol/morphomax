@@ -3,11 +3,13 @@ import { Request, Response } from 'express';
 
 import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
+import { env } from '../env';
 import { ScheduleIdentitySchema, ScheduleParamsSchema } from './schema';
 import { VincentAuthenticatedRequest } from './types';
 import * as jobManager from '../jobs/yieldJobManager';
 import { YieldSwap } from '../mongo/models/YieldSwap';
 
+const { NEW_SCHEDULE_FREQUENCY } = env;
 const { cancelJob, createJob, getScheduleBalances, listJobsByWalletAddress } = jobManager;
 
 function getAppAndPKPInfoFromJWT(req: VincentAuthenticatedRequest) {
@@ -79,7 +81,7 @@ export const handleCreateScheduleRoute = async (
     },
   });
 
-  const schedule = await createJob({ ...scheduleParams }, { interval: '1 day' });
+  const schedule = await createJob({ ...scheduleParams }, { interval: NEW_SCHEDULE_FREQUENCY });
   res.status(201).json({ data: schedule.toJson(), success: true });
 };
 
