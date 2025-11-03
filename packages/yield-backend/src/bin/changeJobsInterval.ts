@@ -2,13 +2,8 @@ import yargs from 'yargs';
 
 /* eslint-disable no-console */
 import { createAgenda } from '../lib/agenda/agendaClient';
+import { IntervalKey, intervalMap, intervalKeys } from '../lib/agenda/frequencies';
 import { JobType } from '../lib/jobs/optimizeYield';
-
-const intervalMap = {
-  daily: '1 day',
-  monthly: '1 month',
-  weekly: '1 week',
-};
 
 async function main() {
   const { commit, interval } = yargs(process.argv.slice(2))
@@ -20,7 +15,7 @@ async function main() {
         type: 'boolean',
       },
       interval: {
-        choices: Object.keys(intervalMap),
+        choices: intervalKeys,
         description: 'How often all jobs should be run.',
         required: true,
         type: 'string',
@@ -32,7 +27,7 @@ async function main() {
 
   const agenda = await createAgenda();
 
-  // This script modifies _all_ jobs to the provided interval, indescriminately
+  // This script modifies _all_ jobs to the provided interval, indiscriminately
   // @ts-expect-error ASSUMPTION: All jobs in the DB are of the same type
   const jobs: JobType[] = await agenda.jobs();
 
@@ -46,7 +41,7 @@ async function main() {
 
     // skipImmediate: true ensures that the job is not run immediately on start, so job run times will still be naturally staggered
     // by their original creation time
-    job.repeatEvery(intervalMap[interval as keyof typeof intervalMap], { skipImmediate: true });
+    job.repeatEvery(intervalMap[interval as IntervalKey], { skipImmediate: true });
 
     if (!job.attrs.disabled) {
       numEnabled += 1;
