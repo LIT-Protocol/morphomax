@@ -79,6 +79,12 @@ export const faqData: FAQItem[] = [
     answer:
       'Your native stablecoin yield will auto-compound into your deposited balance. Rewards associated with the Lit Protocol points campaign will be allocated at a future snapshot and distributed at a later date.',
   },
+  {
+    id: 'reward-distribution',
+    question: 'When will my rewards be distributed?',
+    answer:
+      'The rewards associated with the Lit Protocol points campaign will be distributed very soon!',
+  },
 ];
 
 const FAQItem: React.FC<{
