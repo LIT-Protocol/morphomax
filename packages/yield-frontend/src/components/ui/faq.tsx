@@ -83,7 +83,7 @@ export const faqData: FAQItem[] = [
     id: 'reward-distribution',
     question: 'When will my rewards be distributed?',
     answer:
-      'The rewards associated with the Lit Protocol points campaign will be distributed very soon!',
+      "The bonus reward period is over. All the users who deposited before Nov 3, 2025 will receive their pro-rated rewards on Nov 30, 2025 in their Agent wallet. Let's say you deposited $100 on Oct 1, 2025 you will receive the pro-rated rewards on Nov 30, 2025 calculated as follows: Interest earned in 60 days with continuous compounding = $4.45. Amount of $LITKEY earned based on $250M FDV & 1B total token supply = $4.45/0.25 = 17.8 LITKEY.",
   },
 ];
 
