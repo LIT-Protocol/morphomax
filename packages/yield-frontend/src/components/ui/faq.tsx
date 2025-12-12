@@ -76,14 +76,28 @@ export const faqData: FAQItem[] = [
   {
     id: 'view-rewards',
     question: 'How can I view my rewards?',
-    answer:
-      'Your native stablecoin yield will auto-compound into your deposited balance. Rewards associated with the Lit Protocol points campaign will be allocated at a future snapshot and distributed at a later date.',
+    answer: 'Your native stablecoin yield will auto-compound into your deposited balance.',
   },
   {
     id: 'reward-distribution',
-    question: 'When will my rewards be distributed?',
-    answer:
-      "The bonus reward period is over. All the users who deposited before Nov 3, 2025 will receive their pro-rated rewards on Nov 30, 2025 in their Agent wallet. Let's say you deposited $100 on Oct 1, 2025 you will receive the pro-rated rewards on Nov 30, 2025 calculated as follows: Interest earned in 60 days with continuous compounding = $4.45. Amount of $LITKEY earned based on $250M FDV & 1B total token supply = $4.45/0.25 = 17.8 LITKEY.",
+    question: 'When will my Lit Protocol point rewards be distributed?',
+    answer: (
+      <>
+        The bonus reward period has ended. Users who deposited before November 3, 2025 have received
+        their rewards on Base Mainnet at their Vincent Agent Wallet address. Read more about the
+        distribution{' '}
+        <a
+          href="https://spark.litprotocol.com/vincent-yield-rewards-airdrop/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:opacity-80"
+          style={{ color: '#FF4205' }}
+        >
+          here
+        </a>
+        .
+      </>
+    ),
   },
 ];
 
